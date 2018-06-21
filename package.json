@@ -1,0 +1,11 @@
+{
+  "name": "analogway_livecore",
+  "version": "0.0.1",
+  "description": "Analog Way Livecore series seamless switcher plugin for Companion",
+  "main": "analogway_livecore.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dorian Meid <meid@backstage.org>",
+  "license": "ISC"
+}
