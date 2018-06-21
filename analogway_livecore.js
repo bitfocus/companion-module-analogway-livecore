@@ -160,14 +160,14 @@ instance.prototype.config_fields = function () {
 			label: 'Variant',
 			id: 'variant',
 			default: '1',
-			choices: {
-				1: 'ASC4806',
-				2: 'ASC3204',
-				3: 'ASC1602',
-				4: 'NXT1604',
-				5: 'NXT0802',
-				6: 'SMX12x4'
-			}
+			choices: [
+				{ id: '1', label: 'ASC4806' },
+				{ id: '2', label: 'ASC3204' },
+				{ id: '3', label: 'ASC1602' },
+				{ id: '4', label: 'NXT1604' },
+				{ id: '5', label: 'NXT0802' },
+				{ id: '6', label: 'SMX12x4' }
+			]
 		}
 	]
 };
@@ -196,16 +196,16 @@ instance.prototype.actions = function(system) {
  				label: 'Screen',
  				id: 'screen',
  				default: '0',
- 				choices: {
-					0: '1',
-					1: '2',
-					2: '3',
-					3: '4',
-					4: '5',
-					5: '6',
-					6: '7',
-					7: '8'
-					}
+ 				choices: [
+					{ id: '0', label: '1' },
+					{ id: '1', label: '2' },
+					{ id: '2', label: '3' },
+					{ id: '3', label: '4' },
+					{ id: '4', label: '5' },
+					{ id: '5', label: '6' },
+					{ id: '6', label: '7' },
+					{ id: '7', label: '8' }
+				]
 			}]},
 		'loadpreset': {
 			label: 'Load Memory',
@@ -229,14 +229,14 @@ instance.prototype.actions = function(system) {
 				id: 'pgmpvw',
 				default: '1',
 				tooltip: 'Select wether the memory schould be loaded into the preview or program of the screen',
-				choices: { 0: 'Program', 1: 'Preview'}
+				choices: [ { id: '0', label: 'Program' }, { id: '1', label: 'Preview' }]
 			},{
 				type: 'dropdown',
 				label: 'Scale enable',
 				id: 'scale',
 				default: '1',
 				tooltip: 'Select wether the layers in the memory should be scaled according to the size of the screen if it is different from the size of the screen which the memory has been saved from.',
-				choices: { 0: 'Do not scale', 1: 'Enable scale'}
+				choices: [ { id: '0', label: 'Do not scale' }, { id: '1', label: 'Enable scale' }]
 			}]},
 			'loadmaster': {
 				label: 'Load Master Memory',
@@ -253,14 +253,14 @@ instance.prototype.actions = function(system) {
 					id: 'pgmpvw',
 					default: '1',
 					tooltip: 'Select wether the memory schould be loaded into the preview or program of the screens',
-					choices: { 0: 'Program', 1: 'Preview'}
+					choices: [ { id: '0', label: 'Program' }, { id: '1', label: 'Preview' }]
 				},{
 					type: 'dropdown',
 					label: 'Scale enable',
 					id: 'scale',
 					default: '1',
 					tooltip: 'Select wether the layers in the memory should be scaled according to the size of the screens if it is different from the size of the screens which the memory has been saved from.',
-					choices: { 0: 'Do not scale', 1: 'Enable scale'}
+					choices: [ { id: '0', label: 'Do not scale' }, { id: '1', label: 'Enable scale' }]
 				}]},
 				'setfilter': {
 				label: 'Set recall filter',
@@ -270,84 +270,84 @@ instance.prototype.actions = function(system) {
 					id: 'filter1',
 					default: '1',
 					tooltip: 'Select wether the layer source should be included in the memory recall.',
-					choices: { 0: 'Exclude source', 1: 'Include source'}
+					choices: [ { id: '0', label: 'Exclude source' }, { id: '1', label: 'Include source' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer position and size',
 					id: 'filter2',
 					default: '1',
 					tooltip: 'Select wether the layer position and size should be included in the memory recall.',
-					choices: { 0: 'Exclude position and size', 1: 'Include position and size'}
+					choices: [ { id: '0', label: 'Exclude position and size' }, { id: '1', label: 'Include position and size' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer transparency',
 					id: 'filter4',
 					default: '1',
 					tooltip: 'Select wether the layer transparency should be included in the memory recall.',
-					choices: { 0: 'Exclude transparency', 1: 'Include transparency'}
+					choices: [ { id: '0', label: 'Exclude transparency' }, { id: '1', label: 'Include transparency' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer crop',
 					id: 'filter8',
 					default: '1',
 					tooltip: 'Select wether the layer crop should be included in the memory recall.',
-					choices: { 0: 'Exclude crop', 1: 'Include crop'}
+					choices: [ { id: '0', label: 'Exclude crop' }, { id: '1', label: 'Include crop' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer border',
 					id: 'filter16',
 					default: '1',
 					tooltip: 'Select wether the layer border apperance should be included in the memory recall.',
-					choices: { 0: 'Exclude border', 1: 'Include border'}
+					choices: [ { id: '0', label: 'Exclude border' }, { id: '1', label: 'Include border' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer transitions',
 					id: 'filter32',
 					default: '1',
 					tooltip: 'Select wether the layer opening and closing transitions should be included in the memory recall.',
-					choices: { 0: 'Exclude transitions', 1: 'Include transitions'}
+					choices: [ { id: '0', label: 'Exclude transitions' }, { id: '1', label: 'Include transitions' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer effects',
 					id: 'filter64',
 					default: '1',
 					tooltip: 'Select wether the layer effects should be included in the memory recall.',
-					choices: { 0: 'Exclude effects', 1: 'Include effects'}
+					choices: [ { id: '0', label: 'Exclude effects' }, { id: '1', label: 'Include effects' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer timing',
 					id: 'filter128',
 					default: '1',
 					tooltip: 'Select wether the layer timing should be included in the memory recall.',
-					choices: { 0: 'Exclude timing', 1: 'Include timing'}
+					choices: [ { id: '0', label: 'Exclude timing' }, { id: '1', label: 'Include timing' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer speed',
 					id: 'filter256',
 					default: '1',
 					tooltip: 'Select wether the layer speed should be included in the memory recall.',
-					choices: { 0: 'Exclude speed', 1: 'Include speed'}
+					choices: [ { id: '0', label: 'Exclude speed' }, { id: '1', label: 'Include speed' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer flying curve',
 					id: 'filter512',
 					default: '1',
 					tooltip: 'Select wether the layer flying curve should be included in the memory recall.',
-					choices: { 0: 'Exclude flying curve', 1: 'Include flying curve'}
+					choices: [ { id: '0', label: 'Exclude flying curve' }, { id: '1', label: 'Include flying curve' }]
 				},{
 					type: 'dropdown',
 					label: 'Native background',
 					id: 'filter1024',
 					default: '1',
 					tooltip: 'Select wether the native background should be included in the memory recall.',
-					choices: { 0: 'Exclude native background', 1: 'Include native background'}
+					choices: [ { id: '0', label: 'Exclude native background' }, { id: '1', label: 'Include native background' }]
 				},{
 					type: 'dropdown',
 					label: 'Layer mask',
 					id: 'filter2048',
 					default: '1',
 					tooltip: 'Select wether the layer mask should be included in the memory recall.',
-					choices: { 0: 'Exclude mask', 1: 'Include mask'}
+					choices: [ { id: '0', label: 'Exclude mask' }, { id: '1', label: 'Include mask' }]
 			}]},
 			'loadmonitoring': {
 				label: 'Recall Monitoring Memory',
@@ -364,7 +364,7 @@ instance.prototype.actions = function(system) {
 					id: 'device',
 					default: '0',
 					tooltip: 'Select wether the monitoring memory schould be recalled on master or slave device in a stacked configuration. Leave at master for single configuration.',
-					choices: { 0: 'Master', 1: 'Slave'}
+					choices: [ { id: '0', label: 'Master' }, { id: '1', label: 'Slave' }]
 			}]},
 			'selectscreens': {
 				label: 'Select screens for global take',
@@ -374,49 +374,49 @@ instance.prototype.actions = function(system) {
 					label: 'Screen 1',
 					id: '0',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 2',
 					id: '1',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 3',
 					id: '2',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 4',
 					id: '3',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 5',
 					id: '4',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 6',
 					id: '5',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 7',
 					id: 'screen7',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 8',
 					id: 'screen8',
 					default: '0',
-					choices: { 0: 'No change', 1: 'Add to selection', 2: 'Remove from selection'}
+					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 			}]},
 			'loadconfidence': {
 				label: 'Load confidence Memory',
@@ -450,7 +450,7 @@ instance.prototype.actions = function(system) {
 				id: 'mode',
 				default: '0',
 				tooltip: 'Select wether confidence mode should be switched on or off at selected screen',
-				choices: { 0: 'Off', 1: 'On'}
+				choices: [ { id: '0', label: 'Off' }, { id: '1', label: 'On' }]
 			}]},
 			'switchplug': {
 				label: 'Switch input plug',
@@ -468,7 +468,7 @@ instance.prototype.actions = function(system) {
 				id: 'plug',
 				default: '0',
 				tooltip: 'Select the plug to use for that input',
-				choices: { 0:	'Analog HD15 connector', 1: 'Analog DVI-A connector', 2: 'DVI', 3: 'SDI', 4: 'HDMI', 5: 'DisplayPort' }
+				choices: [ { id: '0', label: 'Analog HD15 connector' }, { id: '1', label: 'Analog DVI-A connector' }, { id: '2', label: 'DVI' }, { id: '3', label: 'SDI' }, { id: '4', label: 'HDMI' }, { id: '5', label: 'DisplayPort' } ]
 			}]},
 			'sendcustomcommand': {
 				label: 'Send custom command',
