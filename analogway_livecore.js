@@ -551,9 +551,6 @@ instance.prototype.action = function(action) {
 		break;
 
 	case 'loadmaster':
-		// No filter
-		cmd = '4095PMcat\n';
-
 		// set scale
 		if (action.options.scale == '0') {
 			cmd += '0PMlse\n';
@@ -562,7 +559,7 @@ instance.prototype.action = function(action) {
 		}
 
 		// set memory to load
-		cmd += (parseInt(action.options.memory)-1) + ',PSmet\n';
+		cmd += (parseInt(action.options.memory)-1) + 'PSmet\n';
 
 		// set preview/program
 		if (action.options.pvwpgm == '0') {
