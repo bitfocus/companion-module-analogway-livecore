@@ -186,9 +186,9 @@ instance.prototype.destroy = function() {
 instance.prototype.actions = function(system) {
 	var self = this;
 	self.system.emit('instance_actions', self.id, { // Note: Options-IDs need to be 0,1,... in the order of the command (1st index, 2nd index, nth index, value) for self generating commands.
-		'1SPtsl': {
-			label: 'Take selected screens'
-			},
+		'globaltake': {
+			label: 'Take selected screens (Global take)'
+		},
 		'takescreen': {
 			 label: 'Take single screen',
 			 options: [{
@@ -489,6 +489,10 @@ instance.prototype.action = function(action) {
 
 	switch(action.action) {
 
+	case 'globaltake':
+		cmd = 'SPtsl\n';
+		break;
+
 	case 'takescreen':
 		cmd = '' + action.options.screen + ',1SPCtk\n';
 		break;
@@ -604,12 +608,18 @@ instance.prototype.action = function(action) {
 	case 'selectscreens':
 		cmd = '';
 		for (var option in action.options) {
-			if (action.options.option == '1') cmd += action.options.option +',1SPscl\n';
-			else if (action.options.option == '2') cmd += action.options.option +',0SPscl\n';
+			if (action.options[option] == '1') {
+				cmd += option +',1SPscl\n';
+			} else if (action.options[option] == '2') {
+				cmd += option +',0SPscl\n';
+			}
 		}
-		if (cmd == '') return;
-		else cmd.replace(/\n$/,'');
 
+		if (cmd == '') {
+			return;
+		} else {
+			cmd = cmd.trim();
+		}
 		break;
 
 	default:
