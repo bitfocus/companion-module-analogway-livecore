@@ -186,7 +186,7 @@ instance.prototype.destroy = function() {
 instance.prototype.actions = function(system) {
 	var self = this;
 	self.system.emit('instance_actions', self.id, { // Note: Options-IDs need to be 0,1,... in the order of the command (1st index, 2nd index, nth index, value) for self generating commands.
-		'globaltake': {
+		'1SPtsl': {
 			label: 'Take selected screens (Global take)'
 		},
 		'takescreen': {
@@ -489,12 +489,8 @@ instance.prototype.action = function(action) {
 
 	switch(action.action) {
 
-	case 'globaltake':
-		cmd = 'SPtsl\n';
-		break;
-
 	case 'takescreen':
-		cmd = '' + action.options.screen + ',1SPCtk\n';
+		cmd = '' + action.options.screen + ',1SPCtk';
 		break;
 
 	case 'setfilter':
