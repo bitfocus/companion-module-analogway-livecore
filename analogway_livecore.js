@@ -185,7 +185,13 @@ instance.prototype.destroy = function() {
 
 instance.prototype.actions = function(system) {
 	var self = this;
-	self.system.emit('instance_actions', self.id, { // Note: Options-IDs need to be 0,1,... in the order of the command (1st index, 2nd index, nth index, value) for self generating commands.
+	self.system.emit('instance_actions', self.id, {
+				/*
+				 	Note: For self generating commands use option ids 0,1,...,5 and 'value'.
+					The command will be of the form [valueof0],[valueof1],...[valueof5],[valueofvalue][CommandID]
+					for set-commands you need a value, for get-commands you mustn't have a value
+					for simple commands the value can be hardcoded in the CommandID, like "1SPtsl".
+				*/
 		'1SPtsl': {
 			label: 'Take selected screens (Global take)'
 		},
@@ -619,15 +625,18 @@ instance.prototype.action = function(action) {
 		break;
 
 	default:
-		var optionsort = [];
-		for (var option in action.options) {
-			if (action.options.hasOwnProperty(option) && action.options[option] != '') optionsort[option] = action.options[option]; // make an array based on option ids
+		cmd = '';
+		if (action.options) {
+			for (var i = 0; i<= 5; i++) {
+				if (action.options.hasOwnProperty(i) && action.options[i] != '') {
+					cmd += action.options[i] + ',';
+				}
+			}
+			if (action.options.hasOwnProperty('value') && action.options['value'] != '') {
+				cmd += action.options['value'];
+			}
 		}
-		if (optionsort.length > 0) {
-			cmd = optionsort.join(',') + action.action; // tis works only for set-commands not for query-commands
-		} else {
-			cmd = action.action;
-		}
+		cmd += action.action;
 		break;
 	}
 	self.sendcmd(cmd);
