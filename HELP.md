@@ -7,3 +7,24 @@ Most commands are straight forward, only thing to mention is the screen selectio
 Before you can use the global take command you have to select the screens which will be affected by the command. The selection is stored in the device until it is changed. The screen selection for the third party protocol is independent from the screen selection of WebRCS, so you cant see in WebRCS which screens are selected for the take command of Companion.
 
 This module uses always the default TCP port number of 10600 for control of the device. Make sure the port number is not set to something different on your Livecore machine.
+
+**Available variants for AnalogWay Livecore**
+
+* ACS4806
+* ACS3204
+* NXT1604
+* NXT0802
+* SMX12x4
+
+**Available commands for AnalogWay Livecore**
+
+* Take selected screens (Global take)
+* Take single screen
+* Load Memory
+* Load Master Memory
+* Set recall filter
+* Recall Monitoring Memory
+* Select screens for global take
+* Load confidence mode
+* Switch input plug
+* Send custom command
