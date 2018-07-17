@@ -1,6 +1,6 @@
 {
   "name": "analogway_livecore",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Analog Way Livecore series seamless switcher plugin for Companion",
   "main": "analogway_livecore.js",
   "scripts": {

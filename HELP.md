@@ -23,7 +23,9 @@ This module uses always the default TCP port number of 10600 for control of the 
 * Load Memory
 * Load Master Memory
 * Set recall filter
+* Freeze Input
 * Recall Monitoring Memory
+* Fullscreen Monitoring
 * Select screens for global take
 * Load confidence mode
 * Switch input plug

@@ -355,6 +355,23 @@ instance.prototype.actions = function(system) {
 					tooltip: 'Select wether the layer mask should be included in the memory recall.',
 					choices: [ { id: '0', label: 'Exclude mask' }, { id: '1', label: 'Include mask' }]
 			}]},
+			'inputfreeze': {
+				label: 'Freeze Input',
+				options: [{
+					type: 'textinput',
+					label: 'Input',
+					id: 'input',
+					default: '1',
+					tooltip: 'Enter the number of the input you want to adjust (1 to 12 for inputs of master device and 13 to 24 for inputs of slave device).',
+					regex: '/^0*([1-9]|1[0-9]|2[0-4])$/'
+				},{
+					type: 'dropdown',
+					label: 'Freeze Status',
+					id: 'freeze',
+					default: '0',
+					tooltip: 'Select wether the input should be frozen or live.',
+					choices: [ { id: '0', label: 'Unfrozen' }, { id: '1', label: 'Frozen' }]
+			}]},
 			'loadmonitoring': {
 				label: 'Recall Monitoring Memory',
 				options: [{
@@ -371,6 +388,30 @@ instance.prototype.actions = function(system) {
 					default: '0',
 					tooltip: 'Select wether the monitoring memory schould be recalled on master or slave device in a stacked configuration. Leave at master for single configuration.',
 					choices: [ { id: '0', label: 'Master' }, { id: '1', label: 'Slave' }]
+			}]},
+			'monitoringfullscreen': {
+				label: 'Fullscreen Monitoring',
+				options: [{
+					type: 'textinput',
+					label: 'Source to show',
+					id: 'input',
+					default: '1',
+					tooltip: 'Enter the number of the source you want to show. 1 to 12 for inputs of master device, 13 to 24 for inputs of slave device, 25 to 40 for frames and logos of master and slave, 41 to 48 for screen 1 to 8 and 49 to 56 for preview 1 to 8.',
+					regex: '/^0*([1-9]|[1-4][0-9]|5[0-6])$/'
+				},{
+					type: 'dropdown',
+					label: 'Device',
+					id: 'device',
+					default: '0',
+					tooltip: 'Select wether to switch the master or the slave device in stacked configuration.',
+					choices: [ { id: '0', label: 'Master' }, { id: '1', label: 'Slave' }]
+				},{
+					type: 'dropdown',
+					label: 'Fullscreen Status',
+					id: 'fullscreen',
+					default: '0',
+					tooltip: 'Select wether the monitoring output should be in mosaic mode or fullscreen mode.',
+					choices: [ { id: '0', label: 'Mosaic mode' }, { id: '1', label: 'Fullscreen Mode' }]
 			}]},
 			'selectscreens': {
 				label: 'Select screens for global take',
@@ -596,6 +637,25 @@ instance.prototype.action = function(action) {
 
 		break;
 
+	case 'monitoringfullscreen':
+		if (action.options.fullscreen == 1) {
+			// select input
+			cmd = '' + action.options.device + ',' + (parseInt(action.options.input)-1) + 'MLfes\n';
+			// activate fullscreen
+			cmd += '' + action.options.device + ',1MLfen';
+		} else {
+			// deactivate fullscreen
+			cmd = '' + action.options.device + ',0MLfen';
+		}
+		break;
+
+	case 'inputfreeze':
+		// set input
+		cmd = '' + (parseInt(action.options.input)-1) + ',';
+		// freeze?
+		cmd += action.options.freeze + 'INfrz';
+		break;
+
 	case 'switchplug':
 		// set input
 		cmd = '' + (parseInt(action.options.input)-1) + ',';
@@ -673,7 +733,7 @@ instance.prototype.sendcmd = function(cmd) {
 instance.module_info = {
 	label: 'Analog Way Livecore',
 	id: 'analogway_livecore',
-	version: '0.0.1'
+	version: '0.1.0'
 };
 
 instance_skel.extendedBy(instance);
