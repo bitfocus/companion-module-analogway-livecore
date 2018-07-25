@@ -642,11 +642,12 @@ instance.prototype.action = function(action) {
 			// select input
 			cmd = '' + action.options.device + ',' + (parseInt(action.options.input)-1) + 'MLfes\n';
 			// activate fullscreen
-			cmd += '' + action.options.device + ',1MLfen';
+			cmd += '' + action.options.device + ',1MLfen\n';
 		} else {
 			// deactivate fullscreen
-			cmd = '' + action.options.device + ',0MLfen';
+			cmd = '' + action.options.device + ',0MLfen\n';
 		}
+		cmd += '' + action.options.device + ',0MLupd\n' + action.options.device + ',1MLupd';
 		break;
 
 	case 'inputfreeze':
@@ -733,7 +734,7 @@ instance.prototype.sendcmd = function(cmd) {
 instance.module_info = {
 	label: 'Analog Way Livecore',
 	id: 'analogway_livecore',
-	version: '0.1.0'
+	version: '0.1.1'
 };
 
 instance_skel.extendedBy(instance);
