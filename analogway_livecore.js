@@ -187,7 +187,7 @@ instance.prototype.actions = function(system) {
 	var self = this;
 	self.system.emit('instance_actions', self.id, {
 				/*
-				 	Note: For self generating commands use option ids 0,1,...,5 and 'value'.
+					 Note: For self generating commands use option ids 0,1,...,5 and 'value'.
 					The command will be of the form [valueof0],[valueof1],...[valueof5],[valueofvalue][CommandID]
 					for set-commands you need a value, for get-commands you mustn't have a value
 					for simple commands the value can be hardcoded in the CommandID, like "1SPtsl".
@@ -199,10 +199,10 @@ instance.prototype.actions = function(system) {
 			 label: 'Take single screen',
 			 options: [{
 				type: 'dropdown',
- 				label: 'Screen',
- 				id: 'screen',
- 				default: '0',
- 				choices: [
+				 label: 'Screen',
+				 id: 'screen',
+				 default: '0',
+				 choices: [
 					{ id: '0', label: '1' },
 					{ id: '1', label: '2' },
 					{ id: '2', label: '3' },
@@ -728,13 +728,6 @@ instance.prototype.sendcmd = function(cmd) {
 		}
 
 	}
-};
-
-
-instance.module_info = {
-	label: 'Analog Way Livecore',
-	id: 'analogway_livecore',
-	version: '0.1.1'
 };
 
 instance_skel.extendedBy(instance);
