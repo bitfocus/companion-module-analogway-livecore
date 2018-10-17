@@ -572,7 +572,7 @@ instance.prototype.action = function(action) {
 		cmd += '' + (parseInt(action.options.destscreen)-1) + 'PMscf\n';
 
 		// set preview/program
-		if (action.options.pvwpgm == '0') {
+		if (action.options.pgmpvw == '0') {
 			cmd += '0PMprf\n';
 		} else {
 			cmd += '1PMprf\n';
@@ -609,7 +609,7 @@ instance.prototype.action = function(action) {
 		cmd += (parseInt(action.options.memory)-1) + 'PSmet\n';
 
 		// set preview/program
-		if (action.options.pvwpgm == '0') {
+		if (action.options.pgmpvw == '0') {
 			cmd += '0PSprf\n';
 		} else {
 			cmd += '1PSprf\n';
