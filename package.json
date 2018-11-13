@@ -5,7 +5,7 @@
 	"legacy": ["analogway_livecore"],
 	"keywords": [ "Protocol", "Image Processing" ],
 	"manufacturer": "Analog Way",
-	"product": "LiveCore",
+	"product": [ "LiveCore","NeXtage 16","SmartMatriX Ultra","Ascender 32","Ascender 48","Output Expander 16","Output Expander 32","Output Expander 48","NeXtage 16 - 4K","SmartMatriX Ultra - 4K","Ascender 32 - 4K","Ascender 48 - 4K","Ascender 16","Ascender 16 - 4K","Ascender 48 - 4K - PL","Output Expander 48 - 4K  - PL","NeXtage 08","NeXtage 08 - 4K","Ascender 32 - 4K -PL","Output Expander 32 - 4K - PL" ],
 	"shortname": "lightware",
   "description": "Analog Way Livecore series seamless switcher plugin for Companion",
   "main": "analogway_livecore.js",
