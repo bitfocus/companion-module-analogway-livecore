@@ -1,17 +1,20 @@
 {
-  "name": "livecore",
-  "version": "1.0.0",
+	"name": "livecore",
+	"version": "1.0.1",
 	"api_version": "1.0.0",
 	"legacy": ["analogway_livecore"],
-	"keywords": [ "Protocol", "Image Processing" ],
+	"keywords": [
+		"Protocol",
+		"Image Processing"
+	],
 	"manufacturer": "Analog Way",
-	"product": [ "LiveCore","NeXtage 16","SmartMatriX Ultra","Ascender 32","Ascender 48","Output Expander 16","Output Expander 32","Output Expander 48","NeXtage 16-4K","SmartMatriX Ultra-4K","Ascender 32-4K","Ascender 48-4K","Ascender 16","Ascender 16-4K","Ascender 48-4K-PL","Output Expander 48-4K-PL","NeXtage 08","NeXtage 08-4K","Ascender 32-4K-PL","Output Expander 32-4K-PL" ],
+	"product": "LiveCore series",
 	"shortname": "livecore",
-  "description": "Analog Way Livecore series seamless switcher plugin for Companion",
-  "main": "analogway_livecore.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Dorian Meid <meid@backstage.org>",
-  "license": "ISC"
+	"description": "Analog Way Livecore series seamless switcher plugin for Companion",
+	"main": "analogway_livecore.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Dorian Meid <meid@backstage.org>",
+	"license": "MIT"
 }
