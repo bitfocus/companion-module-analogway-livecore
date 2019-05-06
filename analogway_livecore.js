@@ -39,7 +39,7 @@ instance.prototype.init_tcp = function() {
 	}
 
 	if (self.config.host) {
-		self.socket = new tcp(self.config.host, 10600);
+		self.socket = new tcp(self.config.host, self.config.port);
 
 		self.socket.on('status_change', function (status, message) {
 			self.status(status, message);
@@ -167,6 +167,15 @@ instance.prototype.config_fields = function () {
 				{ id: '4', label: 'NXT1604' },
 				{ id: '5', label: 'NXT0802' },
 				{ id: '6', label: 'SMX12x4' }
+			]
+		},{
+			type: 'dropdown',
+			label: 'Port number',
+			id: 'port',
+			default: '10600',
+			choices: [
+				{ id: '10600', label: '10600 (default)' },
+				{ id: '10500', label: '10500' }
 			]
 		}
 	]
