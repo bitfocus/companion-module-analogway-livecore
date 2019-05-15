@@ -464,13 +464,13 @@ instance.prototype.actions = function(system) {
 				},{
 					type: 'dropdown',
 					label: 'Screen 7',
-					id: 'screen7',
+					id: '6',
 					default: '0',
 					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 				},{
 					type: 'dropdown',
 					label: 'Screen 8',
-					id: 'screen8',
+					id: '7',
 					default: '0',
 					choices: [ { id: '0', label: 'No change' }, { id: '1', label: 'Add to selection' }, { id: '2', label: 'Remove from selection' }]
 			}]},
