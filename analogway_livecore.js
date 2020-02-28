@@ -80,7 +80,7 @@ instance.prototype.init_tcp = function() {
 						self.log('info',self.config.label +" has " + (connectedDevices-1) + " other connected controller(s).");
 						self.sendcmd("?");
 					}	else if (connectedDevices == 4) {
-						self.log(warn,self.config.label +" has 4 other connected controllers. Maximum reached.");
+						self.log('warn',self.config.label +" has 4 other connected controllers. Maximum reached.");
 						self.sendcmd("?");
 					} else {
 						self.log('error',self.config.label +" connections limit has been reached! Max 5 controllers possible, but it is " + connectedDevices + "! Closing connection now.");
