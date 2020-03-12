@@ -1,8 +1,11 @@
 {
-	"name": "livecore",
+	"name": "analogway-livecore",
+	"legacy": [
+		"analogway_livecore",
+		"livecore"
+	],
 	"version": "1.1.1",
 	"api_version": "1.0.0",
-	"legacy": ["analogway_livecore"],
 	"keywords": [
 		"Protocol",
 		"Image Processing"
