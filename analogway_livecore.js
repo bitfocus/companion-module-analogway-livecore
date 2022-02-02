@@ -194,7 +194,7 @@ instance.prototype.destroy = function() {
 
 instance.prototype.actions = function(system) {
 	var self = this;
-	self.system.emit('instance_actions', self.id, {
+	self.setActions({
 				/*
 					 Note: For self generating commands use option ids 0,1,...,5 and 'value'.
 					The command will be of the form [valueof0],[valueof1],...[valueof5],[valueofvalue][CommandID]
