@@ -6,7 +6,9 @@ var feedback = require('./feedback')
 var debug
 var log
 
-var screenarray = {}
+//var screenarray = {}
+var program = []
+var preview = []
 
 class instance extends instance_skel {
 	/**
@@ -15,7 +17,7 @@ class instance extends instance_skel {
 	 * @param {EventEmitter} system - the brains of the operation
 	 * @param {string} id - the instance ID
 	 * @param {Object} config - saved user configuration parameters
-	 * @since 1.1.0
+	 *
 	 */
 	constructor(system, id, config) {
 		super(system, id, config)
@@ -35,7 +37,7 @@ class instance extends instance_skel {
 	 *
 	 * @param {EventEmitter} system - the brains of the operation
 	 * @access public
-	 * @since 1.1.0
+	 *
 	 */
 	actions(system) {
 		this.setActions(this.getActions())
@@ -45,7 +47,7 @@ class instance extends instance_skel {
 	 *
 	 * @returns {Array} the config fields
 	 * @access public
-	 * @since 1.1.0
+	 *
 	 */
 	config_fields() {
 		return [
@@ -99,7 +101,7 @@ class instance extends instance_skel {
 	 * is OK to start doing things.
 	 *
 	 * @access public
-	 * @since 1.1.0
+	 *
 	 */
 	init() {
 		debug = this.debug
@@ -111,7 +113,7 @@ class instance extends instance_skel {
 	 * TCP initialization
 	 *
 	 * @access protected
-	 * @since 1.0.0
+	 *
 	 */
 	init_tcp() {
 		if (this.socket !== undefined) {
@@ -283,30 +285,65 @@ class instance extends instance_skel {
 					}
 				}
 
-				if (line.match(/SPPEi(\d(,\d)+)/i)) {
-					//SPPEi1,1,0,2
-					var temp = line.split(',')
-					var screenNumer = Number(temp[0].replace('SPPEi', ''))
-					var isPreview = temp[1] === '1'
-					var layer = Number(temp[2])
-					var input = Number(temp[3])
+				// if (line.match(/SPPEi(\d(,\d)+)/i)) {
+				// 	//SPPEi1,1,0,2
+				// 	var temp = line.split(',')
+				// 	//debug(temp)
+				// 	var screenNumer = Number(temp[0].replace('SPPEi', ''))
+				// 	var isPreview = temp[1] === '1'
+				// 	var layer = Number(temp[2])
+				// 	var input = Number(temp[3])
 
-					var newData = {}
-					if (isPreview) {
-						newData['preview'] = input
+				// 	var newData = {}
+				// 	if (isPreview) {
+				// 		newData['preview'] = input
+				// 	} else {
+				// 		newData['program'] = input
+				// 	}
+
+				// 	screenarray['screen' + screenNumer] = {
+				// 		...(screenarray['screen' + screenNumer] || {}),
+				// 		...newData,
+				// 	}
+
+				// 	//debug('screenarray debug: ' + screenarray)
+				// 	//this.log('info', JSON.stringify(screenarray))
+				// }
+
+				if (line.match(/TAopr\d,\d/)) {
+					//Program Tally Information
+					var prearr = line.split(',')
+					var input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
+					if (input[1] === '1') {
+						program.push(input[0])
 					} else {
-						newData['program'] = input
+						const index = program.indexOf(input[0])
+						if (index > -1) {
+							// only splice array when item is found
+							program.splice(index, 1) // 2nd parameter means remove one item only
+						}
 					}
+					program.sort()
 
-					screenarray['screen' + screenNumer] = {
-						...(screenarray['screen' + screenNumer] || {}),
-						...newData,
-					}
-
+					debug('program inputs: ' + program)
 					this.checkFeedbacks()
-
-					debug('screenarray debug: ' + screenarray)
-					this.log('info', JSON.stringify(screenarray))
+				}
+				if (line.match(/TAopw\d,\d/)) {
+					//Preview Tally information
+					var prearr = line.split(',')
+					var input = [Number(prearr[0].replace('TAopw', '')), prearr[1]]
+					if (input[1] === '1') {
+						preview.push(input[0])
+					} else {
+						const index = preview.indexOf(input[0])
+						if (index > -1) {
+							// only splice array when item is found
+							preview.splice(index, 1) // 2nd parameter means remove one item only
+						}
+					}
+					preview.sort()
+					debug('preview inputs: ' + preview)
+					this.checkFeedbacks()
 				}
 			})
 
@@ -321,7 +358,7 @@ class instance extends instance_skel {
 	 * initialize feedbacks.
 	 *
 	 * @access protected
-	 * @since 1.1.0
+	 *
 	 */
 	initFeedbacks() {
 		var feedbacks = this.getFeedbacks()
@@ -330,16 +367,15 @@ class instance extends instance_skel {
 	}
 
 	feedback(feedback) {
-
 		if (feedback.type === 'input_active') {
-			if (screenarray.screen1.program === feedback.options.source) {
+			if (program.includes(feedback.options.source)) {
 				return true
 			}
 
 			return false
 		}
 		if (feedback.type === 'input_previewed') {
-			if (screenarray.screen1.preview === feedback.options.source) {
+			if (preview.includes(feedback.options.source)) {
 				return true
 			}
 			return false
@@ -351,7 +387,7 @@ class instance extends instance_skel {
 	 *
 	 * @param {Object} action - the action to be executed
 	 * @access public
-	 * @since 1.0.0
+	 *
 	 */
 	action(action) {
 		var cmd = ''
