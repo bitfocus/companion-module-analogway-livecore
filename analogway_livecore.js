@@ -2,6 +2,7 @@ var tcp = require('../../tcp');
 var instance_skel = require('../../instance_skel');
 var debug;
 var log;
+var screenarray = {};
 
 function instance(system, id, config) {
 	var self = this;
@@ -16,6 +17,8 @@ function instance(system, id, config) {
 	instance_skel.apply(this, arguments);
 
 	self.actions(); // export actions
+
+	self.feedbacks(); // export feedbacks
 
 	return self;
 }
@@ -137,6 +140,34 @@ instance.prototype.init_tcp = function() {
 				}
 			}
 
+			if (line.match(/SPPEi(\d(,\d)+)/i)){
+
+				//SPPEi1,1,0,2
+
+				var temp = line.split(',');
+				var screenNumer = Number(temp[0].replace('SPPEi', ''));
+				var isPreview = temp[1] === "1";
+				var layer = Number(temp[2]);
+				var input = Number(temp[3]);
+
+				var newData = {};
+				if(isPreview) {
+					newData["preview"] = input;
+				} else {
+					newData["program"] = input;
+				}
+				
+				screenarray["screen" + screenNumer] = {
+					...screenarray["screen" + screenNumer] || {},
+					...newData,
+				};
+
+				self.checkFeedbacks();
+
+				debug("screenarray debug: " + screenarray);
+				self.log('info', JSON.stringify(screenarray));
+			}
+			
 		});
 
 	}
@@ -192,11 +223,57 @@ instance.prototype.destroy = function() {
 	debug("destroy", self.id);;
 };
 
+instance.prototype.feedbacks = function() {
+	var self = this;
+
+	var feedbacks = {}
+	feedbacks['input_active'] = {
+		type: 'boolean',
+		label: 'Input Visible in Program',
+		description: 'If a source is visible in the program, change the style of the button',
+		style: {
+			// The default style change for a boolean feedback
+			// The user will be able to customise these values as well as the fields that will be changed
+			color: self.rgb(255, 255, 255),
+			bgcolor: self.rgb(200, 0, 0)
+		},
+		// options is how the user can choose the condition the feedback activates for
+		options: [{
+			type: 'number',
+			label: 'Source',
+			id: 'source',
+			default: 1
+		}],
+	}
+
+	feedbacks['input_previewed'] = {
+		type: 'boolean',
+		label: 'Input Visible in Preview',
+		description: 'If a source is enabled in the preview scene, change the style of the button',
+		style: {
+			// The default style change for a boolean feedback
+			// The user will be able to customise these values as well as the fields that will be changed
+			color: self.rgb(255, 255, 255),
+			bgcolor: self.rgb(0, 200, 0)
+		},
+		// options is how the user can choose the condition the feedback activates for
+		options: [{
+			type: 'number',
+			label: 'Source',
+			id: 'source',
+			default: 1
+		}],
+	}
+
+	self.setFeedbackDefinitions(feedbacks)
+
+}
+
 instance.prototype.actions = function(system) {
 	var self = this;
 	self.setActions({
 				/*
-					 Note: For self generating commands use option ids 0,1,...,5 and 'value'.
+					Note: For self generating commands use option ids 0,1,...,5 and 'value'.
 					The command will be of the form [valueof0],[valueof1],...[valueof5],[valueofvalue][CommandID]
 					for set-commands you need a value, for get-commands you mustn't have a value
 					for simple commands the value can be hardcoded in the CommandID, like "1SPtsl".
@@ -539,6 +616,26 @@ instance.prototype.actions = function(system) {
 	});
 }
 
+instance.prototype.feedback = function (feedback) {
+	var self = this;
+
+	if (feedback.type === 'input_active') {
+		if(screenarray.screen1.program === feedback.options.source) {
+			return true
+		}
+
+		return false
+
+	}
+	if (feedback.type === 'input_previewed') {
+		if(screenarray.screen1.preview === feedback.options.source) {
+			return true
+		}
+		return false
+	}
+	return false
+}
+
 instance.prototype.action = function(action) {
 	var self = this;
 	var cmd = '';
@@ -737,6 +834,9 @@ instance.prototype.sendcmd = function(cmd) {
 		}
 
 	}
+
+	self.checkFeedbacks();
+
 };
 
 instance_skel.extendedBy(instance);
