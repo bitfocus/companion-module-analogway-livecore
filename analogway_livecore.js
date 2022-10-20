@@ -323,7 +323,7 @@ class instance extends instance_skel {
 							program.splice(index, 1) // 2nd parameter means remove one item only
 						}
 					}
-					program.sort()
+					//program.sort()
 
 					debug('program inputs: ' + program)
 					this.checkFeedbacks()
@@ -341,7 +341,7 @@ class instance extends instance_skel {
 							preview.splice(index, 1) // 2nd parameter means remove one item only
 						}
 					}
-					preview.sort()
+					//preview.sort()
 					debug('preview inputs: ' + preview)
 					this.checkFeedbacks()
 				}
