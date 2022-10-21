@@ -1,14 +1,15 @@
-var tcp = require('../../tcp')
-var instance_skel = require('../../instance_skel')
-var actions = require('./actions')
-var feedback = require('./feedback')
+const tcp = require('../../tcp')
+const instance_skel = require('../../instance_skel')
+const actions = require('./actions')
+const feedback = require('./feedback')
 
-var debug
-var log
+let debug
+let log
 
-//var screenarray = {}
-var program = []
-var preview = []
+let states = []
+
+let tallyPGM = []
+let tallyPRV = []
 
 class instance extends instance_skel {
 	/**
@@ -22,7 +23,10 @@ class instance extends instance_skel {
 	constructor(system, id, config) {
 		super(system, id, config)
 
-		Object.assign(this, { ...actions, ...feedback })
+		Object.assign(this, {
+			...actions,
+			...feedback,
+		})
 
 		this.firmwareVersion = '0'
 		this.numOutputs = 0
@@ -154,7 +158,6 @@ class instance extends instance_skel {
 			})
 
 			this.socket.on('receiveline', (line) => {
-				debug('Received line from Livecore:', line)
 				this.initFeedbacks()
 
 				if (line.match(/TPcon\d,\d+/)) {
@@ -285,66 +288,41 @@ class instance extends instance_skel {
 					}
 				}
 
-				// if (line.match(/SPPEi(\d(,\d)+)/i)) {
-				// 	//SPPEi1,1,0,2
-				// 	var temp = line.split(',')
-				// 	//debug(temp)
-				// 	var screenNumer = Number(temp[0].replace('SPPEi', ''))
-				// 	var isPreview = temp[1] === '1'
-				// 	var layer = Number(temp[2])
-				// 	var input = Number(temp[3])
-
-				// 	var newData = {}
-				// 	if (isPreview) {
-				// 		newData['preview'] = input
-				// 	} else {
-				// 		newData['program'] = input
-				// 	}
-
-				// 	screenarray['screen' + screenNumer] = {
-				// 		...(screenarray['screen' + screenNumer] || {}),
-				// 		...newData,
-				// 	}
-
-				// 	//debug('screenarray debug: ' + screenarray)
-				// 	//this.log('info', JSON.stringify(screenarray))
-				// }
-
 				if (line.match(/TAopr\d,\d/)) {
 					//Program Tally Information
-					var prearr = line.split(',')
-					var input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
+					let prearr = line.split(',')
+					let input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
 					if (input[1] === '1') {
-						program.push(input[0])
+						tallyPGM.push(input[0])
 					} else {
-						const index = program.indexOf(input[0])
+						const index = tallyPGM.indexOf(input[0])
 						if (index > -1) {
 							// only splice array when item is found
-							program.splice(index, 1) // 2nd parameter means remove one item only
+							tallyPGM.splice(index, 1) // 2nd parameter means remove one item only
 						}
 					}
-					//program.sort()
-
-					debug('program inputs: ' + program)
+					//debug('program inputs: ' + tallyPGM)
 					this.checkFeedbacks()
 				}
 				if (line.match(/TAopw\d,\d/)) {
 					//Preview Tally information
-					var prearr = line.split(',')
-					var input = [Number(prearr[0].replace('TAopw', '')), prearr[1]]
+					let prearr = line.split(',')
+					let input = [Number(prearr[0].replace('TAopw', '')), prearr[1]]
 					if (input[1] === '1') {
-						preview.push(input[0])
+						tallyPRV.push(input[0])
 					} else {
-						const index = preview.indexOf(input[0])
+						const index = tallyPRV.indexOf(input[0])
 						if (index > -1) {
 							// only splice array when item is found
-							preview.splice(index, 1) // 2nd parameter means remove one item only
+							tallyPRV.splice(index, 1) // 2nd parameter means remove one item only
 						}
 					}
 					//preview.sort()
-					debug('preview inputs: ' + preview)
+					//debug('preview inputs: ' + tallyPRV)
 					this.checkFeedbacks()
 				}
+
+				debug('Received line from Livecore:', line)
 			})
 
 			this.socket.on('end', () => {
@@ -368,14 +346,14 @@ class instance extends instance_skel {
 
 	feedback(feedback) {
 		if (feedback.type === 'input_active') {
-			if (program.includes(feedback.options.source)) {
+			if (tallyPGM.includes(feedback.options.source)) {
 				return true
 			}
 
 			return false
 		}
 		if (feedback.type === 'input_previewed') {
-			if (preview.includes(feedback.options.source)) {
+			if (tallyPRV.includes(feedback.options.source)) {
 				return true
 			}
 			return false
@@ -559,7 +537,6 @@ class instance extends instance_skel {
 		this.sendcmd(cmd)
 	}
 	sendcmd(cmd) {
-		var self = this
 		cmd += '\n'
 
 		if (cmd !== undefined) {
