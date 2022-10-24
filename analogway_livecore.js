@@ -306,7 +306,7 @@ class instance extends instance_skel {
 					}
 				}
 
-				if (line.match(/TAopr\d,\d/)) {
+				if (line.match(/^TAopr\d+,(0|1)$/)) {
 					//Program Tally Information
 					let prearr = line.split(',')
 					let input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
@@ -318,7 +318,8 @@ class instance extends instance_skel {
 							tallyPGM.splice(index, 1)
 						}
 					}
-					this.checkFeedbacks()
+					//debug('program inputs: ' + tallyPGM)
+					this.checkFeedbacks('input_active')
 				}
 				if (line.match(/TAopw\d,\d/)) {
 					//Preview Tally information
