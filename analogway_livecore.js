@@ -288,7 +288,7 @@ class instance extends instance_skel {
 					}
 				}
 
-				if (line.match(/TAopr\d,\d/)) {
+				if (line.match(/^TAopr\d+,(0|1)$/)) {
 					//Program Tally Information
 					let prearr = line.split(',')
 					let input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
