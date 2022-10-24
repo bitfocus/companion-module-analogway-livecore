@@ -306,53 +306,37 @@ class instance extends instance_skel {
 					}
 				}
 
-				if (line.match(/^TAopr\d+,(0|1)$/)) {
+				if (line.match(/TAopr\d+,(0|1)$/)) {
 					//Program Tally Information
-					let prearr = line.split(',')
-					let input = [Number(prearr[0].replace('TAopr', '')), prearr[1]]
-					if (input[1] === '1') {
-						tallyPGM.push(input[0])
-					} else {
-						const index = tallyPGM.indexOf(input[0])
-						if (index > -1) {
-							tallyPGM.splice(index, 1)
-						}
-					}
+					const input = line.replace('TAopr', '').split(',')
+					tallyPGM[Number(input[0])] = Number(input[1])
 					//debug('program inputs: ' + tallyPGM)
 					this.checkFeedbacks('input_active')
 				}
-				if (line.match(/TAopw\d,\d/)) {
+				if (line.match(/TAopw\d,(0|1)$/)) {
 					//Preview Tally information
-					let prearr = line.split(',')
-					let input = [Number(prearr[0].replace('TAopw', '')), prearr[1]]
-					if (input[1] === '1') {
-						tallyPRV.push(input[0])
-					} else {
-						const index = tallyPRV.indexOf(input[0])
-						if (index > -1) {
-							tallyPRV.splice(index, 1)
-						}
-					}
-					this.checkFeedbacks()
+					const input = line.replace('TAopw', '').split(',')
+					tallyPRV[Number(input[0])] = Number(input[1])
+					//debug('preview inputs: ' + tallyPRV)
+					this.checkFeedbacks('input_previewed')
 				}
-				if (line.match(/SPscl\d,\d/)) {
-					//Information about selected screens for global take
-					let temp = line.split(',')
-					let screen = [Number(temp[0].replace('SPscl', '')), temp[1]]
-					if (screen[1] === '1') {
-						activeScreen.push(screen[0])
-					} else {
-						const index = activeScreen.indexOf(screen[0])
-						if (index > -1) {
-							activeScreen.splice(index, 1)
-						}
-					}
-					this.checkFeedbacks()
-				}
+				// if (line.match(/SPscl\d,\d/)) {
+				// 	//Information about selected screens for global take
+				// 	let temp = line.split(',')
+				// 	let screen = [Number(temp[0].replace('SPscl', '')), temp[1]]
+				// 	if (screen[1] === '1') {
+				// 		activeScreen.push(screen[0])
+				// 	} else {
+				// 		const index = activeScreen.indexOf(screen[0])
+				// 		if (index > -1) {
+				// 			activeScreen.splice(index, 1)
+				// 		}
+				// 	}
+				// 	this.checkFeedbacks()
+				// }
 
 				debug('Received line from Livecore:', line)
 			})
-
 			this.socket.on('end', () => {
 				debug('Disconnected, ok')
 				this.socket.destroy()
@@ -374,14 +358,14 @@ class instance extends instance_skel {
 
 	feedback(feedback) {
 		if (feedback.type === 'input_active') {
-			if (tallyPGM.includes(feedback.options.source)) {
+			if (tallyPGM[feedback.options.source]) {
 				return true
 			}
 
 			return false
 		}
 		if (feedback.type === 'input_previewed') {
-			if (tallyPRV.includes(feedback.options.source)) {
+			if (tallyPRV[feedback.options.source]) {
 				return true
 			}
 			return false
