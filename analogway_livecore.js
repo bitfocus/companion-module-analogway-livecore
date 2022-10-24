@@ -6,10 +6,9 @@ const feedback = require('./feedback')
 let debug
 let log
 
-let states = []
-
 let tallyPGM = []
 let tallyPRV = []
+let activeScreen = []
 
 class instance extends instance_skel {
 	/**
@@ -101,6 +100,26 @@ class instance extends instance_skel {
 	}
 
 	/**
+	 * Process an updated configuration array.
+	 *
+	 * @param {Object} config - the new configuration
+	 * @access public
+	 * @since 1.1.0
+	 */
+	updateConfig(config) {
+		let resetConnection = false
+
+		if (this.config.host != config.host) {
+			resetConnection = true
+		}
+
+		this.config = config
+		if (resetConnection === true || this.socket === undefined) {
+			this.init_tcp()
+		}
+	}
+
+	/**
 	 * Main initialization function called once the module
 	 * is OK to start doing things.
 	 *
@@ -112,6 +131,7 @@ class instance extends instance_skel {
 		log = this.log
 
 		this.init_tcp()
+		this.initFeedbacks()
 	}
 	/**
 	 * TCP initialization
@@ -158,8 +178,6 @@ class instance extends instance_skel {
 			})
 
 			this.socket.on('receiveline', (line) => {
-				this.initFeedbacks()
-
 				if (line.match(/TPcon\d,\d+/)) {
 					if (line.match(/TPcon0,\d+/) == null) {
 						this.log(
@@ -297,11 +315,9 @@ class instance extends instance_skel {
 					} else {
 						const index = tallyPGM.indexOf(input[0])
 						if (index > -1) {
-							// only splice array when item is found
-							tallyPGM.splice(index, 1) // 2nd parameter means remove one item only
+							tallyPGM.splice(index, 1)
 						}
 					}
-					//debug('program inputs: ' + tallyPGM)
 					this.checkFeedbacks()
 				}
 				if (line.match(/TAopw\d,\d/)) {
@@ -313,12 +329,23 @@ class instance extends instance_skel {
 					} else {
 						const index = tallyPRV.indexOf(input[0])
 						if (index > -1) {
-							// only splice array when item is found
-							tallyPRV.splice(index, 1) // 2nd parameter means remove one item only
+							tallyPRV.splice(index, 1)
 						}
 					}
-					//preview.sort()
-					//debug('preview inputs: ' + tallyPRV)
+					this.checkFeedbacks()
+				}
+				if (line.match(/SPscl\d,\d/)) {
+					//Information about selected screens for global take
+					let temp = line.split(',')
+					let screen = [Number(temp[0].replace('SPscl', '')), temp[1]]
+					if (screen[1] === '1') {
+						activeScreen.push(screen[0])
+					} else {
+						const index = activeScreen.indexOf(screen[0])
+						if (index > -1) {
+							activeScreen.splice(index, 1)
+						}
+					}
 					this.checkFeedbacks()
 				}
 
@@ -354,6 +381,12 @@ class instance extends instance_skel {
 		}
 		if (feedback.type === 'input_previewed') {
 			if (tallyPRV.includes(feedback.options.source)) {
+				return true
+			}
+			return false
+		}
+		if (feedback.type === 'screen_active') {
+			if (activeScreen.includes(feedback.options.screen)) {
 				return true
 			}
 			return false
