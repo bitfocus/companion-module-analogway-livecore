@@ -302,7 +302,7 @@ class instance extends instance_skel {
 						}
 					}
 					//debug('program inputs: ' + tallyPGM)
-					this.checkFeedbacks()
+					this.checkFeedbacks('input_active')
 				}
 				if (line.match(/TAopw\d,\d/)) {
 					//Preview Tally information
