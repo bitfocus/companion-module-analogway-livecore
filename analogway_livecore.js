@@ -319,7 +319,7 @@ class instance extends instance_skel {
 					}
 					//preview.sort()
 					//debug('preview inputs: ' + tallyPRV)
-					this.checkFeedbacks()
+					this.checkFeedbacks('input_previewed')
 				}
 
 				debug('Received line from Livecore:', line)
