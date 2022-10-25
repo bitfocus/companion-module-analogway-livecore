@@ -18,6 +18,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
+	"format": "prettier --write .",
 	"author": "Dorian Meid <meid@backstage.org>",
 	"license": "MIT",
 	"homepage": "https://github.com/bitfocus/companion-module-analogway-livecore#readme",

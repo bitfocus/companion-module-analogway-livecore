@@ -6,10 +6,6 @@ const feedback = require('./feedback')
 let debug
 let log
 
-let tallyPGM = []
-let tallyPRV = []
-let activeScreen = []
-
 class instance extends instance_skel {
 	/**
 	 * Create an instance.
@@ -32,6 +28,9 @@ class instance extends instance_skel {
 		this.numInputs = 0
 		this.modelnum
 		this.modelname = ''
+		this.tallyPGM = []
+		this.tallyPRV = []
+		this.activeScreen = []
 
 		this.actions() // export actions
 	}
@@ -109,7 +108,7 @@ class instance extends instance_skel {
 	updateConfig(config) {
 		let resetConnection = false
 
-		if (this.config.host != config.host) {
+		if (this.config.host != config.host || this.config.port != config.port) {
 			resetConnection = true
 		}
 
@@ -309,14 +308,14 @@ class instance extends instance_skel {
 				if (line.match(/TAopr\d+,(0|1)$/)) {
 					//Program Tally Information
 					const input = line.replace('TAopr', '').split(',')
-					tallyPGM[Number(input[0])] = Number(input[1])
+					this.tallyPGM[Number(input[0])] = Number(input[1])
 					//debug('program inputs: ' + tallyPGM)
 					this.checkFeedbacks('input_active')
 				}
 				if (line.match(/TAopw\d,(0|1)$/)) {
 					//Preview Tally information
 					const input = line.replace('TAopw', '').split(',')
-					tallyPRV[Number(input[0])] = Number(input[1])
+					this.tallyPRV[Number(input[0])] = Number(input[1])
 					//debug('preview inputs: ' + tallyPRV)
 					this.checkFeedbacks('input_previewed')
 				}
@@ -358,24 +357,24 @@ class instance extends instance_skel {
 
 	feedback(feedback) {
 		if (feedback.type === 'input_active') {
-			if (tallyPGM[feedback.options.source]) {
+			if (this.tallyPGM[feedback.options.source]) {
 				return true
 			}
 
 			return false
 		}
 		if (feedback.type === 'input_previewed') {
-			if (tallyPRV[feedback.options.source]) {
+			if (this.tallyPRV[feedback.options.source]) {
 				return true
 			}
 			return false
 		}
-		if (feedback.type === 'screen_active') {
-			if (activeScreen.includes(feedback.options.screen)) {
-				return true
-			}
-			return false
-		}
+		// if (feedback.type === 'screen_active') {
+		// 	if (activeScreen.includes(feedback.options.screen)) {
+		// 		return true
+		// 	}
+		// 	return false
+		// }
 		return false
 	}
 	/**
