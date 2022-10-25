@@ -312,27 +312,20 @@ class instance extends instance_skel {
 					//debug('program inputs: ' + tallyPGM)
 					this.checkFeedbacks('input_active')
 				}
-				if (line.match(/TAopw\d,(0|1)$/)) {
+				if (line.match(/TAopw\d+,(0|1)$/)) {
 					//Preview Tally information
 					const input = line.replace('TAopw', '').split(',')
 					this.tallyPRV[Number(input[0])] = Number(input[1])
 					//debug('preview inputs: ' + tallyPRV)
 					this.checkFeedbacks('input_previewed')
 				}
-				// if (line.match(/SPscl\d,\d/)) {
-				// 	//Information about selected screens for global take
-				// 	let temp = line.split(',')
-				// 	let screen = [Number(temp[0].replace('SPscl', '')), temp[1]]
-				// 	if (screen[1] === '1') {
-				// 		activeScreen.push(screen[0])
-				// 	} else {
-				// 		const index = activeScreen.indexOf(screen[0])
-				// 		if (index > -1) {
-				// 			activeScreen.splice(index, 1)
-				// 		}
-				// 	}
-				// 	this.checkFeedbacks()
-				// }
+				if (line.match(/SPscl\d+,(0|1)$/)) {
+					//Information about selected screens for global take
+					const screen = line.replace('SPscl', '').split(',')
+					this.activeScreen[Number(screen[0])] = Number(screen[1])
+					//debug('screens active: ' + this.activeScreen)
+					this.checkFeedbacks('screen_active')
+				}
 
 				debug('Received line from Livecore:', line)
 			})
@@ -369,12 +362,12 @@ class instance extends instance_skel {
 			}
 			return false
 		}
-		// if (feedback.type === 'screen_active') {
-		// 	if (activeScreen.includes(feedback.options.screen)) {
-		// 		return true
-		// 	}
-		// 	return false
-		// }
+		if (feedback.type === 'screen_active') {
+			if (this.activeScreen[feedback.options.screen]) {
+				return true
+			}
+			return false
+		}
 		return false
 	}
 	/**

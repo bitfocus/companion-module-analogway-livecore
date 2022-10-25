@@ -58,36 +58,36 @@ module.exports = {
 			],
 		}
 
-		// feedbacks['screen_active'] = {
-		// 	type: 'boolean',
-		// 	label: 'Change style from screen selected',
-		// 	description: 'If a screen for global take is selected, change the style of the button',
-		// 	style: {
-		// 		// The default style change for a boolean feedback
-		// 		// The user will be able to customise these values as well as the fields that will be changed
-		// 		color: this.rgb(255, 255, 255),
-		// 		bgcolor: this.rgb(200, 0, 0),
-		// 	},
-		// 	// options is how the user can choose the condition the feedback activates for
-		// 	options: [
-		// 		{
-		// 			type: 'dropdown',
-		// 			label: 'Screen',
-		// 			id: 'screen',
-		// 			default: '0',
-		// 			choices: [
-		// 				{ id: 0, label: '1' },
-		// 				{ id: 1, label: '2' },
-		// 				{ id: 2, label: '3' },
-		// 				{ id: 3, label: '4' },
-		// 				{ id: 4, label: '5' },
-		// 				{ id: 5, label: '6' },
-		// 				{ id: 6, label: '7' },
-		// 				{ id: 7, label: '8' },
-		// 			],
-		// 		},
-		// 	],
-		// }
+		feedbacks['screen_active'] = {
+			type: 'boolean',
+			label: 'Change style from screen selected',
+			description: 'If a screen for global take is selected, change the style of the button',
+			style: {
+				// The default style change for a boolean feedback
+				// The user will be able to customise these values as well as the fields that will be changed
+				color: this.rgb(255, 255, 255),
+				bgcolor: this.rgb(200, 0, 0),
+			},
+			// options is how the user can choose the condition the feedback activates for
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Screen',
+					id: 'screen',
+					default: '0',
+					choices: [
+						{ id: 0, label: '1' },
+						{ id: 1, label: '2' },
+						{ id: 2, label: '3' },
+						{ id: 3, label: '4' },
+						{ id: 4, label: '5' },
+						{ id: 5, label: '6' },
+						{ id: 6, label: '7' },
+						{ id: 7, label: '8' },
+					],
+				},
+			],
+		}
 
 		return feedbacks
 	},
