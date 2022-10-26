@@ -4,6 +4,8 @@ const actions = require('./actions')
 const feedback = require('./feedback')
 const presets = require('./presets')
 
+const awconfig = require('./awconfig.json')
+
 let debug
 let log
 
@@ -89,16 +91,15 @@ class instance extends instance_skel {
 			},
 			{
 				type: 'dropdown',
-				label: 'Variant',
-				id: 'variant',
-				default: '1',
+				label: 'Model',
+				id: 'model',
+				default: 'Ascender48',
 				choices: [
-					{ id: '1', label: 'ASC4806' },
-					{ id: '2', label: 'ASC3204' },
-					{ id: '3', label: 'ASC1602' },
-					{ id: '4', label: 'NXT1604' },
-					{ id: '5', label: 'NXT0802' },
-					{ id: '6', label: 'SMX12x4' },
+					{ id: 'Ascender48', label: 'Ascender 48' },
+					{ id: 'Ascender32', label: 'Ascender 32' },
+					{ id: 'Ascender16', label: 'Ascender 16' },
+					{ id: 'Nextage16', label: 'Nextage 16' },
+					{ id: 'Nextage08', label: 'Nextage 08' },
 				],
 			},
 			{
