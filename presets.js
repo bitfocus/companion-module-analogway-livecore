@@ -3,7 +3,6 @@ exports.getPresets = function () {
     const foregroundColor = this.rgb(255, 255, 255)
     const backgroundColor = this.rgb(0, 0, 0)
 
-
     /**
 	 * Take
 	 */
