@@ -2,7 +2,6 @@ const tcp = require('../../tcp')
 const instance_skel = require('../../instance_skel')
 const actions = require('./actions')
 const feedback = require('./feedback')
-const presets = require('./presets')
 
 let debug
 let log
@@ -22,13 +21,11 @@ class instance extends instance_skel {
 		Object.assign(this, {
 			...actions,
 			...feedback,
-			...presets,
 		})
 
 		this.firmwareVersion = '0'
-		this.outputs = []
-		this.screens = []
-		this.inputs = []
+		this.numOutputs = 0
+		this.numInputs = 0
 		this.modelnum
 		this.modelname = ''
 		this.tallyPGM = []
@@ -46,27 +43,6 @@ class instance extends instance_skel {
 	 */
 	actions(system) {
 		this.setActions(this.getActions())
-	}
-	/**
-	 * initialize feedbacks.
-	 *
-	 * @param {EventEmitter} system - the brains of the operation
-	 * @access public
-	 *
-	 */
-	feedbacks(system) {
-		var feedbacks = this.getFeedbacks()
-
-		this.setFeedbackDefinitions(feedbacks)
-	}
-	/**
-	 * Initialize presets
-	 * 
-	 * @param {EventEmitter} system - the brains of the operation
-	 * @access public
-	 */
-	presets(system) {
-		this.setPresetDefinitions(this.getPresets())
 	}
 	/**
 	 * Creates the configuration fields for web config.
@@ -140,7 +116,6 @@ class instance extends instance_skel {
 		if (resetConnection === true || this.socket === undefined) {
 			this.init_tcp()
 		}
-		this.feedbacks()
 	}
 
 	/**
@@ -155,8 +130,7 @@ class instance extends instance_skel {
 		log = this.log
 
 		this.init_tcp()
-		this.feedbacks()
-		this.presets()
+		this.initFeedbacks()
 	}
 	/**
 	 * TCP initialization
@@ -362,6 +336,17 @@ class instance extends instance_skel {
 			})
 		}
 	}
+	/**
+	 * initialize feedbacks.
+	 *
+	 * @access protected
+	 *
+	 */
+	initFeedbacks() {
+		var feedbacks = this.getFeedbacks()
+
+		this.setFeedbackDefinitions(feedbacks)
+	}
 
 	feedback(feedback) {
 		if (feedback.type === 'input_active') {
@@ -396,9 +381,6 @@ class instance extends instance_skel {
 		var cmd = ''
 
 		switch (action.action) {
-			case 'globaltake':
-				cmd = '1SPtsl'
-				break
 			case 'takescreen':
 				cmd = '' + action.options.screen + ',1SPCtk'
 				break
@@ -585,6 +567,8 @@ class instance extends instance_skel {
 				debug('Socket not connected :(')
 			}
 		}
+
+		this.checkFeedbacks()
 	}
 }
 exports = module.exports = instance

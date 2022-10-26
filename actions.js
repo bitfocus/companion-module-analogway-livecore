@@ -15,7 +15,7 @@ module.exports = {
 					for set-commands you need a value, for get-commands you mustn't have a value
 					for simple commands the value can be hardcoded in the CommandID, like "1SPtsl".
 				*/
-			globaltake: {
+			'1SPtsl': {
 				label: 'Take selected screens (Global take)',
 			},
 			takescreen: {
