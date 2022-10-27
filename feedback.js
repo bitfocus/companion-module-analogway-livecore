@@ -74,7 +74,7 @@ module.exports = {
 					type: 'dropdown',
 					label: 'Screen',
 					id: 'screen',
-					default: '0',
+					default: 0,
 					choices: [
 						{ id: 0, label: '1' },
 						{ id: 1, label: '2' },
