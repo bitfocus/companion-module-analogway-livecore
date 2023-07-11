@@ -1,31 +1,21 @@
 {
 	"name": "analogway-livecore",
-	"legacy": [
-		"analogway_livecore",
-		"livecore"
-	],
-	"version": "1.1.3",
-	"api_version": "1.0.0",
-	"keywords": [
-		"Protocol",
-		"Image Processing"
-	],
-	"manufacturer": "Analog Way",
-	"product": "LiveCore series",
-	"shortname": "livecore",
-	"description": "Analog Way Livecore series seamless switcher plugin for Companion",
+	"version": "2.0.0",
+	"type": "module",
 	"main": "analogway_livecore.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Dorian Meid <meid@backstage.org>",
 	"license": "MIT",
-	"homepage": "https://github.com/bitfocus/companion-module-analogway-livecore#readme",
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-analogway-livecore/issues"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-analogway-livecore.git"
+	},
+	"dependencies": {
+		"@companion-module/base": "~1.4.1"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^1.3.2"
 	}
 }
