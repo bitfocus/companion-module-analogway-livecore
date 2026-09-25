@@ -411,7 +411,9 @@ export const getPresets = (self) => {
 				down: [
 					{
 						actionId: 'monitoringfullscreen',
-						options: { input: { value: '', isExpression: true }, device: { value: '0', isExpression: false }, fullscreen: { value: '0', isExpression: false } },
+						// "input" is ignored when switching back to mosaic mode - a plain literal rather than
+						// an empty expression, which Companion would have to fail to evaluate first.
+						options: { input: { value: '1', isExpression: false }, device: { value: '0', isExpression: false }, fullscreen: { value: '0', isExpression: false } },
 					},
 				],
 				up: [],

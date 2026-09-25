@@ -58,6 +58,9 @@ export default class LiveCore extends InstanceBase {
 	init(config) {
 		let self = this
 		this.config = config
+		// Set by destroy(); stops the deferred connect, the paced command batches and the debounced
+		// definition rebuilds from doing anything (e.g. opening a fresh socket) after the module is gone.
+		this.destroyed = false
 
 		this.firmwareVersion = '0'
 		this.numOutputs = 0
@@ -187,14 +190,14 @@ export default class LiveCore extends InstanceBase {
 				this.log('debug', 'Trying to send empty command')
 				return
 			}
+			if (self.destroyed) return
 
 			cmd += '\n'
-			if (self.socket === undefined) {
-				self.init_tcp()
-			}
-
 			this.log('debug', 'sending tcp ' + cmd + ' to ' + self.config.host)
 
+			// Deliberately no init_tcp() here: the socket's lifecycle is owned by init()/init_tcp()
+			// (which defers the actual connect, see there) - re-triggering it from every command sent
+			// while no socket exists would keep pushing that pending connect further out.
 			if (self.socket !== undefined && self.socket.isConnected) {
 				self.socket.send(cmd)
 			} else {
@@ -213,7 +216,7 @@ export default class LiveCore extends InstanceBase {
 		this.sendCommandBatch = (commands, chunkSize = 20, delayMs = 20) => {
 			let index = 0
 			const sendNextChunk = () => {
-				if (index >= commands.length) return
+				if (index >= commands.length || self.destroyed) return
 				self.sendcmd(commands.slice(index, index + chunkSize).join('\n'))
 				index += chunkSize
 				if (index < commands.length) {
@@ -274,22 +277,24 @@ export default class LiveCore extends InstanceBase {
 			// TPcon is the greeting on the documented TPP port (usually 10600), ITcct is the
 			// equivalent greeting on the richer, undocumented internal port (usually 10500) -
 			// same argument format (device index, connected controller count) either way.
+			// The state cascade itself is not triggered from here (the 'connect' handler sends '?' as
+			// soon as the socket is up, see init_tcp) - this only validates what we're connected to.
 			const greeting = line.match(/TPcon/) ? 'TPcon' : 'ITcct'
-			if (line.match(new RegExp(greeting + '0,\\d+')) == null) {
+			const match = line.match(new RegExp(greeting + '0,(\\d+)'))
+			if (match == null) {
 				self.log(
 					'error',
 					'Connected to ' + self.label + ', but this is not the master of stacked configuation! Closing connection now.'
 				)
 				self.socket.destroy()
+				return
 			}
-			let connectedDevices = parseInt(line.match(new RegExp(greeting + '0,(\\d)'))[1])
+			let connectedDevices = parseInt(match[1])
 			self.setVariableValues({ 'Device.controllers': connectedDevices })
 			if (connectedDevices < 4) {
 				self.log('info', self.label + ' has ' + (connectedDevices - 1) + ' other connected controller(s).')
-				self.sendcmd('?')
 			} else if (connectedDevices == 4) {
 				self.log('warn', self.label + ' has 4 other connected controllers. Maximum reached.')
-				self.sendcmd('?')
 			} else {
 				self.log(
 					'error',
@@ -409,38 +414,38 @@ export default class LiveCore extends InstanceBase {
 			const wasAvailable = this.inputAvailable[Number(input)]
 			this.inputAvailable[Number(input)] = available === '1'
 			if (this.inputAvailable[Number(input)] !== wasAvailable) {
-				this.actions() // rebuild action definitions, e.g. the input dropdowns
-				this.presets() // rebuild preset definitions
-				this.setFeedbackDefinitions(getFeedbacks(this)) // rebuild feedback definitions, e.g. the "Input Freeze" dropdown
+				this.scheduleDefinitionRebuild() // e.g. the input dropdowns
 				this.updateVariableDefinitions() // (un)declare Input{n}.label and MonitoringSource{n}.label
 				this.updateMonitoringSourceVariables()
-				if (this.inputAvailable[Number(input)]) {
-					//Only query further detail once we know the input actually exists
-					this.sendcmd(input + ',INplg')
-					for (let p = 0; p < 6; p += 1) {
-						this.sendcmd(input + ',' + p + ',INpav')
-					}
-				}
+			}
+			// Query the rest of an input's state whenever it reports as existing - not just when that
+			// changed - so a re-run of the cascade (reconnect, the safety reconnect) picks up details
+			// whose replies got lost the first time, and renames done in between.
+			if (this.inputAvailable[Number(input)]) {
+				this.sendCommandBatch([input + ',INplg', ...Array.from({ length: 6 }, (_, p) => input + ',' + p + ',INpav')])
 			}
 		} else if (line.match(/INpav\d+,\d+,(0|1)$/)) {
 			//Whether a given plug is available on an input, used for the "Available Input Plugs" info text
 			const [input, plug, available] = line.replace('INpav', '').split(',')
+			const wasAvailable = this.inputPlugAvailable[Number(input)][Number(plug)]
 			this.inputPlugAvailable[Number(input)][Number(plug)] = available === '1'
-			this.actions() // rebuild action definitions, e.g. the plug availability info text
-			this.presets() // rebuild preset definitions
+			if (this.inputPlugAvailable[Number(input)][Number(plug)] !== wasAvailable) {
+				this.scheduleDefinitionRebuild() // e.g. the plug availability info text, the plug presets
+			}
 		} else if (line.match(/INplg\d+,\d+$/)) {
 			//Which of the 6 plugs is currently active on an input - the name (LBInp) depends on this
 			const [input, plug] = line.replace('INplg', '').split(',')
+			const changed = this.inputActivePlug[Number(input)] !== Number(plug)
 			this.inputActivePlug[Number(input)] = Number(plug)
-			this.actions() // rebuild action definitions, e.g. the input dropdown label's plug name
-			this.presets() // rebuild preset definitions
-			this.setFeedbackDefinitions(getFeedbacks(this)) // rebuild feedback definitions, e.g. the "Input Freeze" dropdown
-			this.checkFeedbacks('input_plug_active')
+			// Always set, not just on change: the default (0) may well be the real value, and the
+			// variable still has to get its first value in that case.
 			this.setVariableValues({ [`Input${Number(input) + 1}.activeplug`]: PLUG_NAMES[Number(plug)] })
-			this.updateMonitoringSourceVariables()
-			for (let c = 0; c < 16; c += 1) {
-				this.sendcmd(input + ',' + plug + ',' + c + ',LBInp')
+			if (changed) {
+				this.scheduleDefinitionRebuild() // e.g. the input dropdown label's plug name
+				this.checkFeedbacks('input_plug_active')
+				this.updateMonitoringSourceVariables()
 			}
+			this.sendCommandBatch(Array.from({ length: 16 }, (_, c) => input + ',' + plug + ',' + c + ',LBInp'))
 		} else if (line.match(/LBInp\d+,\d+,\d+,\d+$/)) {
 			//One character (as ASCII code) of an input's name, 16 chars max, NUL-terminated if shorter.
 			//Only meaningful for the currently active plug (see INplg above) - ignore stale queries for
@@ -455,9 +460,7 @@ export default class LiveCore extends InstanceBase {
 			}
 			if (this.inputNames[input] !== name) {
 				this.inputNames[input] = name
-				this.actions() // rebuild action definitions, e.g. the input dropdown labels
-				this.presets() // rebuild preset definitions
-				this.setFeedbackDefinitions(getFeedbacks(this)) // rebuild feedback definitions, e.g. the "Input Freeze" dropdown
+				this.scheduleDefinitionRebuild() // e.g. the input dropdown labels
 				this.setVariableValues({ [`Input${input + 1}.label`]: name })
 				this.updateMonitoringSourceVariables()
 			}
@@ -475,14 +478,14 @@ export default class LiveCore extends InstanceBase {
 			this.outputAvailable[Number(output)] = available === '1'
 			if (this.outputAvailable[Number(output)] !== wasAvailable) {
 				this.updateVariableDefinitions()
-				if (this.outputAvailable[Number(output)]) {
-					//Only query further detail once we know the output actually exists
-					this.sendcmd(output + ',OUena')
-					this.sendcmd(output + ',OUihc')
-					for (let c = 0; c < 16; c += 1) {
-						this.sendcmd(output + ',' + c + ',LBOut')
-					}
-				}
+			}
+			// Re-queried whenever the output reports as existing, see the INava handling for why.
+			if (this.outputAvailable[Number(output)]) {
+				this.sendCommandBatch([
+					output + ',OUena',
+					output + ',OUihc',
+					...Array.from({ length: 16 }, (_, c) => output + ',' + c + ',LBOut'),
+				])
 			}
 		} else if (line.match(/OUena\d+,(0|1)$/)) {
 			//Whether an output is currently active
@@ -507,7 +510,7 @@ export default class LiveCore extends InstanceBase {
 				this.outputNames[output] = name
 				this.setVariableValues({ [`Out${output + 1}.name`]: name })
 			}
-		} else if (line.match(/TPver\d+/)) {
+		} else if (line.match(/TPver\d+,\d+/)) {
 			let commandSetVersion = parseInt(line.match(/TPver\d+,(\d+)/)[1])
 			self.log('info', 'Command set version of ' + self.label + ' is ' + commandSetVersion)
 
@@ -657,9 +660,7 @@ export default class LiveCore extends InstanceBase {
 			if (this.screenNames[screen] !== name) {
 				this.screenNames[screen] = name
 				this.setVariableValues({ [`S${screen + 1}.name`]: name })
-				this.actions() // rebuild action definitions, e.g. screen dropdown labels
-				this.presets() // rebuild preset definitions
-				this.setFeedbackDefinitions(getFeedbacks(this)) // rebuild feedback definitions, e.g. the monitoring source dropdown
+				this.scheduleDefinitionRebuild() // e.g. screen dropdown labels, the monitoring source dropdown
 				this.updateMonitoringSourceVariables()
 			}
 		} else if (line.match(/SPise\d+,(0|1)$/)) {
@@ -676,23 +677,21 @@ export default class LiveCore extends InstanceBase {
 				}
 				if (this.screenEnabled[Number(screen)] !== wasEnabled) {
 					this.updateVariableDefinitions()
-					this.actions() // rebuild action definitions, e.g. the per-screen dropdowns
-					this.presets() // rebuild preset definitions
-					this.setFeedbackDefinitions(getFeedbacks(this)) // rebuild feedback definitions, e.g. the monitoring source dropdown
+					this.scheduleDefinitionRebuild() // e.g. the per-screen dropdowns, the monitoring source dropdown
 					this.updateMonitoringSourceVariables()
-					if (this.screenEnabled[Number(screen)]) {
-						//Only query the rest of a screen's state once we know it actually exists
-						this.sendcmd(screen + ',SPscl')
-						this.sendcmd(screen + ',0,PIpid')
-						this.sendcmd(screen + ',1,PIpid')
-						this.sendcmd(screen + ',SPCtb')
-						this.sendcmd(screen + ',SCssh')
-						this.sendcmd(screen + ',SCssv')
-						this.sendcmd(screen + ',SCico')
-						for (let c = 0; c < 16; c += 1) {
-							this.sendcmd(screen + ',' + c + ',LBScr')
-						}
-					}
+				}
+				// Re-queried whenever the screen reports as existing, see the INava handling for why.
+				if (this.screenEnabled[Number(screen)]) {
+					this.sendCommandBatch([
+						screen + ',SPscl',
+						screen + ',0,PIpid',
+						screen + ',1,PIpid',
+						screen + ',SPCtb',
+						screen + ',SCssh',
+						screen + ',SCssv',
+						screen + ',SCico',
+						...Array.from({ length: 16 }, (_, c) => screen + ',' + c + ',LBScr'),
+					])
 				}
 			} catch (err) {
 				this.log('error', 'Failed to handle ' + line + ': ' + err.stack)
@@ -703,15 +702,22 @@ export default class LiveCore extends InstanceBase {
 			const wasValid = this.masterMemoryValid[Number(memory)]
 			this.masterMemoryValid[Number(memory)] = valid === '1'
 			if (this.masterMemoryValid[Number(memory)] !== wasValid) {
-				this.actions() // rebuild action definitions, e.g. the master memory dropdown
-				this.presets() // rebuild preset definitions
+				this.scheduleDefinitionRebuild() // e.g. the master memory dropdown
 				this.updateVariableDefinitions() // slot became occupied or empty - (un)declare MM{n}.label
 				if (this.masterMemoryValid[Number(memory)]) {
-					//Only query the name of a master memory once we know it is actually saved
-					for (let c = 0; c < 16; c += 1) {
-						this.sendcmd(memory + ',' + c + ',LBPSe')
-					}
+					// Give the freshly declared variable a value right away (the name reply may leave it
+					// empty, e.g. for a memory saved without a name).
+					this.setVariableValues({ [`MM${Number(memory) + 1}.label`]: this.masterMemoryNames[Number(memory)] })
+				} else {
+					this.masterMemoryNameChars[Number(memory)] = []
+					this.masterMemoryNames[Number(memory)] = ''
 				}
+			}
+			// Name (re)queried whenever the slot reports as saved - not just when that changed - so a
+			// re-run of the cascade picks up name replies lost the first time, and a memory saved over
+			// with a new name (the device re-announces PSval, but not the name) gets its label updated.
+			if (this.masterMemoryValid[Number(memory)]) {
+				this.sendCommandBatch(Array.from({ length: 16 }, (_, c) => memory + ',' + c + ',LBPSe'))
 			}
 		} else if (line.match(/LBPSe\d+,\d+,\d+$/)) {
 			//One character (as ASCII code) of a master preset memory's name, 16 chars max, NUL-terminated if shorter
@@ -724,8 +730,7 @@ export default class LiveCore extends InstanceBase {
 			}
 			if (this.masterMemoryNames[memory] !== name) {
 				this.masterMemoryNames[memory] = name
-				this.actions() // rebuild action definitions, e.g. the master memory dropdown label
-				this.presets() // rebuild preset definitions
+				this.scheduleDefinitionRebuild() // e.g. the master memory dropdown label
 				this.setVariableValues({ [`MM${memory + 1}.label`]: name })
 			}
 		} else if (line.match(/PMmly\d+,\d+$/)) {
@@ -737,18 +742,20 @@ export default class LiveCore extends InstanceBase {
 			const wasValid = this.presetMemoryValid[Number(memory)]
 			this.presetMemoryValid[Number(memory)] = layers !== '0'
 			if (this.presetMemoryValid[Number(memory)] !== wasValid) {
-				this.actions() // rebuild action definitions, e.g. the "Load Memory" dropdown
-				this.presets() // rebuild preset definitions
+				this.scheduleDefinitionRebuild() // e.g. the "Load Memory" dropdown
 				this.updateVariableDefinitions() // slot became occupied or empty - (un)declare SM{n}.label
 				if (this.presetMemoryValid[Number(memory)]) {
-					//Only query the name of a regular memory once we know it is actually saved
-					for (let c = 0; c < 16; c += 1) {
-						this.sendcmd(memory + ',' + c + ',LBPMe')
-					}
+					// Give the freshly declared variable a value right away, see the PSval handling.
+					this.setVariableValues({ [`SM${Number(memory) + 1}.label`]: this.presetMemoryNames[Number(memory)] })
 				} else {
 					this.presetMemoryNameChars[Number(memory)] = []
 					this.presetMemoryNames[Number(memory)] = ''
 				}
+			}
+			// Name (re)queried whenever the slot reports as saved, see the PSval handling for why - the
+			// device broadcasts PMmly on every save, so this is also what catches a renamed memory.
+			if (this.presetMemoryValid[Number(memory)]) {
+				this.sendCommandBatch(Array.from({ length: 16 }, (_, c) => memory + ',' + c + ',LBPMe'))
 			}
 		} else if (line.match(/LBPMe\d+,\d+,\d+$/)) {
 			//One character (as ASCII code) of a regular preset memory's name, 16 chars max, NUL-terminated if shorter
@@ -761,8 +768,7 @@ export default class LiveCore extends InstanceBase {
 			}
 			if (this.presetMemoryNames[memory] !== name) {
 				this.presetMemoryNames[memory] = name
-				this.actions() // rebuild action definitions, e.g. the memory dropdown label
-				this.presets() // rebuild preset definitions
+				this.scheduleDefinitionRebuild() // e.g. the memory dropdown label
 				this.setVariableValues({ [`SM${memory + 1}.label`]: name })
 			}
 		} else if (line.match(/CMlab\d+,\d+,\d+$/)) {
@@ -776,7 +782,7 @@ export default class LiveCore extends InstanceBase {
 			}
 			if (this.confidenceMemoryNames[memory] !== name) {
 				this.confidenceMemoryNames[memory] = name
-				this.actions() // rebuild action definitions, e.g. the confidence memory dropdown label
+				this.scheduleDefinitionRebuild() // e.g. the confidence memory dropdown label
 			}
 		} else if (line.match(/LBMMo\d+,\d+,\d+$/)) {
 			//One character (as ASCII code) of a monitoring memory's name, 16 chars max, NUL-terminated if shorter
@@ -789,8 +795,7 @@ export default class LiveCore extends InstanceBase {
 			}
 			if (this.monitoringMemoryNames[memory] !== name) {
 				this.monitoringMemoryNames[memory] = name
-				this.actions() // rebuild action definitions, e.g. the monitoring memory dropdown label
-				this.presets() // rebuild preset definitions
+				this.scheduleDefinitionRebuild() // e.g. the monitoring memory dropdown label
 			}
 		}
 	}
@@ -986,7 +991,7 @@ export default class LiveCore extends InstanceBase {
 
 		const connectSocket = () => {
 			let receivebuffer = ''
-			if (!self.config?.host) return
+			if (!self.config?.host || self.destroyed) return
 
 			// Hardcoded: the documented TPP port (10600) doesn't broadcast enough (e.g. no live
 			// t-bar position, see GCtba), so this module needs the richer internal port.
@@ -1024,7 +1029,13 @@ export default class LiveCore extends InstanceBase {
 				while ((i = receivebuffer.indexOf('\r\n', offset)) !== -1) {
 					line = receivebuffer.substring(offset, i)
 					offset = i + 2
-					self._receiveline(line.toString())
+					// An exception thrown from inside a socket 'data' listener would take the whole
+					// module process down - one malformed line must not do that.
+					try {
+						self._receiveline(line.toString())
+					} catch (err) {
+						self.log('error', `Failed to handle "${line}": ${err.stack ?? err}`)
+					}
 				}
 				receivebuffer = receivebuffer.substring(offset)
 			})
@@ -1034,6 +1045,7 @@ export default class LiveCore extends InstanceBase {
 			self.socket.destroy()
 			self.socket = undefined
 		}
+		if (self.destroyed) return
 
 		// Connecting right away - whether that's this same process reconnecting (dev-reload, the
 		// watchdog, the safety-reconnect above) or a brand new process's very first connection right
@@ -1077,6 +1089,7 @@ export default class LiveCore extends InstanceBase {
 	// When module gets deleted
 	destroy() {
 		let self = this
+		self.destroyed = true
 
 		if (self.connectionWatchdog !== undefined) {
 			clearInterval(self.connectionWatchdog)
@@ -1086,6 +1099,9 @@ export default class LiveCore extends InstanceBase {
 		}
 		if (self.connectTimeout !== undefined) {
 			clearTimeout(self.connectTimeout)
+		}
+		if (self.definitionRebuildTimer !== undefined) {
+			clearTimeout(self.definitionRebuildTimer)
 		}
 
 		if (self.socket !== undefined) {
@@ -1098,6 +1114,24 @@ export default class LiveCore extends InstanceBase {
 	presets() {
 		const { structure, presets } = getPresets(this)
 		this.setPresetDefinitions(structure, presets)
+	}
+
+	//Coalesces the action/feedback/preset definition rebuilds that incoming status lines trigger.
+	//During the startup cascade that's hundreds of lines within a second or two - every single
+	//character of every name, every plug availability flag, every memory's validity - and each of
+	//them used to rebuild all three definition sets immediately. Callbacks read live state when
+	//they run, so a rebuild landing ~100ms later changes nothing functionally; only the dropdown
+	//labels/choices and the preset list lag by that much. Variable definitions are deliberately
+	//not deferred (cheap, and their values get set right after they're declared).
+	scheduleDefinitionRebuild() {
+		if (this.definitionRebuildTimer !== undefined) return
+		this.definitionRebuildTimer = setTimeout(() => {
+			this.definitionRebuildTimer = undefined
+			if (this.destroyed) return
+			this.actions()
+			this.setFeedbackDefinitions(getFeedbacks(this))
+			this.presets()
+		}, 100)
 	}
 
 	actions() {
@@ -1214,7 +1248,10 @@ export default class LiveCore extends InstanceBase {
 						label: 'Master Memory to load',
 						id: 'memory',
 						default: '1',
-						tooltip: 'Only master memories that actually have something saved to them are listed.',
+						allowCustom: true,
+						allowInvalidValues: true,
+						tooltip:
+							'Only master memories that actually have something saved to them are listed. The number is what counts; an "MM" prefix (e.g. "MM4") is also accepted if typed directly.',
 						choices: self.masterMemoryValid
 							.map((valid, m) =>
 								valid
@@ -1248,6 +1285,9 @@ export default class LiveCore extends InstanceBase {
 					},
 				],
 				callback: (action) => {
+					const memory = self.parseMemoryNumber(action.options.memory)
+					if (memory === undefined) return
+
 					let cmd = ''
 					// set scale
 					if (action.options.scale == '0') {
@@ -1257,7 +1297,7 @@ export default class LiveCore extends InstanceBase {
 					}
 
 					// set memory to load
-					cmd += parseInt(action.options.memory) - 1 + 'PSmet\n'
+					cmd += memory - 1 + 'PSmet\n'
 
 					// set preview/program
 					if (action.options.pgmpvw == '0') {
@@ -1434,6 +1474,7 @@ export default class LiveCore extends InstanceBase {
 						id: 'input',
 						default: '1',
 						choices: self.getInputChoices(),
+						allowInvalidValues: true, // e.g. a numeric local variable via expression
 					},
 					{
 						type: 'dropdown',
@@ -1450,8 +1491,9 @@ export default class LiveCore extends InstanceBase {
 				],
 				callback: (action) => {
 					const input = parseInt(action.options.input) - 1
+					if (!(input >= 0 && input < 24)) return
 					let freeze
-					if (action.options.freeze === '2') {
+					if (String(action.options.freeze) === '2') {
 						freeze = self.inputFrozen[input] ? '0' : '1'
 					} else {
 						freeze = action.options.freeze
@@ -1467,6 +1509,8 @@ export default class LiveCore extends InstanceBase {
 						label: 'Monitoring Memory to load',
 						id: 'memory',
 						default: '1',
+						allowCustom: true,
+						allowInvalidValues: true,
 						choices: self.monitoringMemoryNames.map((name, m) => ({
 							id: String(m + 1),
 							label: `${m + 1}` + (name ? ` - ${name}` : ''),
@@ -1486,7 +1530,9 @@ export default class LiveCore extends InstanceBase {
 					},
 				],
 				callback: (action) => {
-					let cmd = `${parseInt(action.options.memory) - 1},`
+					const memory = self.parseMemoryNumber(action.options.memory)
+					if (memory === undefined) return
+					let cmd = `${memory - 1},`
 
 					// set device
 					if (action.options.device === '1') {
@@ -1647,6 +1693,8 @@ export default class LiveCore extends InstanceBase {
 						label: 'Memory',
 						id: 'memory',
 						default: '1',
+						allowCustom: true,
+						allowInvalidValues: true,
 						choices: self.confidenceMemoryNames.map((name, m) => ({
 							id: String(m + 1),
 							label: `${m + 1}` + (name ? ` - ${name}` : ''),
@@ -1665,9 +1713,10 @@ export default class LiveCore extends InstanceBase {
 					},
 				],
 				callback: (action) => {
-					const memory = parseInt(action.options.memory) - 1
+					const memory = self.parseMemoryNumber(action.options.memory)
+					if (memory === undefined) return
 					//                              set destination screen
-					const lines = self.parseScreenNumbers(action.options.destscreen).map((s) => `${memory},${s - 1},1CMloa`)
+					const lines = self.parseScreenNumbers(action.options.destscreen).map((s) => `${memory - 1},${s - 1},1CMloa`)
 					if (lines.length > 0) self.sendcmd(lines.join('\n'))
 				},
 			},
@@ -1719,6 +1768,7 @@ export default class LiveCore extends InstanceBase {
 						id: 'input',
 						default: '1',
 						choices: self.getInputChoices(),
+						allowInvalidValues: true, // e.g. a numeric local variable via expression
 					},
 					{
 						type: 'dropdown',

@@ -71,10 +71,11 @@ export const getFeedbacks = (self) => {
 				id: 'input',
 				default: '1',
 				choices: self.getInputChoices(),
+				allowInvalidValues: true, // e.g. a numeric local variable via expression
 			},
 		],
 		callback: (feedback) => {
-			return self.inputFrozen[Number(feedback.options.input) - 1]
+			return !!self.inputFrozen[Number(feedback.options.input) - 1]
 		},
 	}
 
@@ -93,12 +94,14 @@ export const getFeedbacks = (self) => {
 				id: 'input',
 				default: '1',
 				choices: self.getInputChoices(),
+				allowInvalidValues: true, // e.g. a numeric local variable via expression
 			},
 			{
 				type: 'dropdown',
 				label: 'Plug',
 				id: 'plug',
 				default: '0',
+				allowInvalidValues: true,
 				choices: [
 					{ id: '0', label: 'Analog VGA connector' },
 					{ id: '1', label: 'Analog DVI-A connector' },

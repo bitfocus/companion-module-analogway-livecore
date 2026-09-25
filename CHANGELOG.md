@@ -18,6 +18,11 @@ These were not edge cases — they affected the core feedback loop of running a 
 - **The connection can get stuck looking "connected" while actually dead.** A quick reconnect — a dev-reload, a network blip, the module's own automatic retry — could leave the switcher not sending its usual greeting, so the module never started talking to it again even though the TCP socket looked fine. It's now caught and recovered from automatically (see "Connection reliability" below).
 - **The full state query on connect could overwhelm the switcher.** Reading everything back after connecting is close to 800 individual commands; firing them all in one burst could cause some responses to be lost, leaving a few variables never populated. They're now sent in small, paced batches instead.
 - Fixed the master-memory range in the "Memory active" feedback (was capped at 119 instead of 144).
+- **Renamed memories now update their labels.** A memory saved over with a new name kept showing its old name in dropdowns, variables and presets until the next reconnect — names are now re-read whenever the switcher announces a save.
+- Connecting to the slave unit of a stacked pair (instead of the master) crashed the module rather than reporting the mistake.
+- A single malformed line from the switcher could take the whole module down; it's now logged and skipped instead.
+- The state query on connect ran twice per connection (once triggered by our own request, once by the switcher's greeting) — it now runs once.
+- Disabling or reloading the module while it was still busy talking to the switcher could leave a stray connection open, occupying one of the switcher's five controller slots.
 
 ### Added
 
