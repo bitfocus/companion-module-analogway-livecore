@@ -1,6 +1,6 @@
 {
 	"name": "analogway-livecore",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"type": "module",
 	"main": "analogway_livecore.js",
 	"scripts": {
