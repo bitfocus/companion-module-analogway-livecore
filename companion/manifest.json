@@ -1,4 +1,5 @@
 {
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"type": "connection",
 	"id": "analogway-livecore",
 	"name": "analogway-livecore",
@@ -14,10 +15,7 @@
 			"email": "meid@backstage.org"
 		}
 	],
-	"legacyIds": [
-		"analogway_livecore",
-		"livecore"
-	],
+	"legacyIds": ["analogway_livecore", "livecore"],
 	"runtime": {
 		"type": "node26",
 		"api": "nodejs-ipc",
@@ -25,11 +23,6 @@
 		"entrypoint": "../analogway_livecore.js"
 	},
 	"manufacturer": "Analog Way",
-	"products": [
-		"LiveCore series"
-	],
-	"keywords": [
-		"Protocol",
-		"Image Processing"
-	]
+	"products": ["LiveCore series"],
+	"keywords": ["Protocol", "Image Processing"]
 }

@@ -77,5 +77,4 @@ These were not edge cases — they affected the core feedback loop of running a 
 - `setVariableDefinitions` now uses the v2 object-keyed format instead of an array.
 - Removed `context.parseVariablesInString()` in favour of Companion resolving `useVariables` fields before the action callback runs.
 - `companion/manifest.json`: `runtime.type` set to `node26`; added the now-required top-level `"type": "connection"` field.
-- Upgraded module tooling to Yarn 4.17.0 with a pinned `packageManager`, matching bitfocus's current module template.
-- Added a GitHub Actions CI workflow (lint/build) and a husky pre-commit hook.
+- Upgraded module tooling to Yarn 4.18.1 with a pinned `packageManager`, and aligned the repository with bitfocus's current JavaScript module template (manifest schema reference, `.gitattributes`, `.prettierignore`, release workflow that attaches the built package to GitHub releases, code formatted with the shared Prettier config).

@@ -52,7 +52,14 @@ export const getPresets = (self) => {
 		localVariables: [{ variableName: 'mastermemory', variableType: 'simple', startupValue: '1' }],
 	}
 	const masterMemoryValues = self.masterMemoryValid
-		.map((valid, m) => (valid ? { value: String(m + 1), name: `${m + 1}` + (self.masterMemoryNames[m] ? ` - ${self.masterMemoryNames[m]}` : '') } : undefined))
+		.map((valid, m) =>
+			valid
+				? {
+						value: String(m + 1),
+						name: `${m + 1}` + (self.masterMemoryNames[m] ? ` - ${self.masterMemoryNames[m]}` : ''),
+					}
+				: undefined,
+		)
 		.filter((v) => v !== undefined)
 	if (masterMemoryValues.length > 0) {
 		structure.push({
@@ -123,7 +130,14 @@ export const getPresets = (self) => {
 		],
 	}
 	const screenMemoryValues = self.presetMemoryValid
-		.map((valid, m) => (valid ? { value: String(m + 1), name: `${m + 1}` + (self.presetMemoryNames[m] ? ` - ${self.presetMemoryNames[m]}` : '') } : undefined))
+		.map((valid, m) =>
+			valid
+				? {
+						value: String(m + 1),
+						name: `${m + 1}` + (self.presetMemoryNames[m] ? ` - ${self.presetMemoryNames[m]}` : ''),
+					}
+				: undefined,
+		)
 		.filter((v) => v !== undefined)
 	const loadMemoryGroups = []
 	if (screenMemoryValues.length > 0) {
@@ -141,7 +155,11 @@ export const getPresets = (self) => {
 		})
 	}
 	if (loadMemoryGroups.length > 0) {
-		structure.push({ id: 'load_memory_to_screen_section', name: 'Load Memory to Screen', definitions: loadMemoryGroups })
+		structure.push({
+			id: 'load_memory_to_screen_section',
+			name: 'Load Memory to Screen',
+			definitions: loadMemoryGroups,
+		})
 	}
 
 	// --- Switch Input Plug (one group per available input) ---------------------------------
@@ -254,7 +272,12 @@ export const getPresets = (self) => {
 		type: 'simple',
 		name: 'Take Screen',
 		style: { text: 'TAKE\\nScreen $(local:screen)', size: '24', color: WHITE, bgcolor: DARK_BLUE },
-		steps: [{ down: [{ actionId: 'takescreen', options: { screen: { value: '$(local:screen)', isExpression: true } } }], up: [] }],
+		steps: [
+			{
+				down: [{ actionId: 'takescreen', options: { screen: { value: '$(local:screen)', isExpression: true } } }],
+				up: [],
+			},
+		],
 		feedbacks: [{ feedbackId: 'internal:buttonPushed', options: {}, style: { color: WHITE, bgcolor: TAKE_RED } }],
 		localVariables: [{ variableName: 'screen', variableType: 'simple', startupValue: '1' }],
 	}
@@ -267,7 +290,10 @@ export const getPresets = (self) => {
 				down: [
 					{
 						actionId: 'selectscreen',
-						options: { screen: { value: '$(local:screen)', isExpression: true }, action: { value: '3', isExpression: false } },
+						options: {
+							screen: { value: '$(local:screen)', isExpression: true },
+							action: { value: '3', isExpression: false },
+						},
 					},
 				],
 				up: [],
@@ -283,7 +309,11 @@ export const getPresets = (self) => {
 		localVariables: [{ variableName: 'screen', variableType: 'simple', startupValue: '1' }],
 	}
 	const selectScreenValues = self.screenEnabled
-		.map((enabled, s) => (enabled ? { value: String(s + 1), name: `S${s + 1}` + (self.screenNames[s] ? ` - ${self.screenNames[s]}` : '') } : undefined))
+		.map((enabled, s) =>
+			enabled
+				? { value: String(s + 1), name: `S${s + 1}` + (self.screenNames[s] ? ` - ${self.screenNames[s]}` : '') }
+				: undefined,
+		)
 		.filter((v) => v !== undefined)
 	if (selectScreenValues.length > 0) {
 		structure.push({
@@ -313,10 +343,23 @@ export const getPresets = (self) => {
 	presets['freeze_input'] = {
 		type: 'simple',
 		name: 'Freeze Input',
-		style: { text: 'Freeze\\nInput #$(local:input)\\n$(livecore:Input$(local:input).label)', size: 'auto', color: WHITE, bgcolor: NAVY },
+		style: {
+			text: 'Freeze\\nInput #$(local:input)\\n$(livecore:Input$(local:input).label)',
+			size: 'auto',
+			color: WHITE,
+			bgcolor: NAVY,
+		},
 		steps: [
 			{
-				down: [{ actionId: 'inputfreeze', options: { input: { value: '$(local:input)', isExpression: true }, freeze: { value: '2', isExpression: false } } }],
+				down: [
+					{
+						actionId: 'inputfreeze',
+						options: {
+							input: { value: '$(local:input)', isExpression: true },
+							freeze: { value: '2', isExpression: false },
+						},
+					},
+				],
 				up: [],
 			},
 		],
@@ -330,7 +373,11 @@ export const getPresets = (self) => {
 		localVariables: [{ variableName: 'input', variableType: 'simple', startupValue: '1' }],
 	}
 	const freezeInputValues = self.inputAvailable
-		.map((available, i) => (available ? { value: String(i + 1), name: `${i + 1}` + (self.inputNames[i] ? ` - ${self.inputNames[i]}` : '') } : undefined))
+		.map((available, i) =>
+			available
+				? { value: String(i + 1), name: `${i + 1}` + (self.inputNames[i] ? ` - ${self.inputNames[i]}` : '') }
+				: undefined,
+		)
 		.filter((v) => v !== undefined)
 	if (freezeInputValues.length > 0) {
 		structure.push({
@@ -376,7 +423,10 @@ export const getPresets = (self) => {
 		feedbacks: [
 			{
 				feedbackId: 'monitoring_fullscreen_active',
-				options: { device: { value: '0', isExpression: false }, source: { value: '$(local:fullscreenmonitoring)', isExpression: true } },
+				options: {
+					device: { value: '0', isExpression: false },
+					source: { value: '$(local:fullscreenmonitoring)', isExpression: true },
+				},
 				style: { color: WHITE, bgcolor: PGM_RED },
 			},
 		],
@@ -384,7 +434,9 @@ export const getPresets = (self) => {
 	}
 	// Every source the protocol supports: available inputs, frames/logos of master/slave, and
 	// program/preview of every existing screen - see getMonitoringSourceChoices() for the exact rules.
-	const monitoringSourceValues = self.getMonitoringSourceChoices().map((choice) => ({ value: choice.id, name: choice.label }))
+	const monitoringSourceValues = self
+		.getMonitoringSourceChoices()
+		.map((choice) => ({ value: choice.id, name: choice.label }))
 	if (monitoringSourceValues.length > 0) {
 		structure.push({
 			id: 'fullscreen_monitoring_source_section',
@@ -413,7 +465,11 @@ export const getPresets = (self) => {
 						actionId: 'monitoringfullscreen',
 						// "input" is ignored when switching back to mosaic mode - a plain literal rather than
 						// an empty expression, which Companion would have to fail to evaluate first.
-						options: { input: { value: '1', isExpression: false }, device: { value: '0', isExpression: false }, fullscreen: { value: '0', isExpression: false } },
+						options: {
+							input: { value: '1', isExpression: false },
+							device: { value: '0', isExpression: false },
+							fullscreen: { value: '0', isExpression: false },
+						},
 					},
 				],
 				up: [],

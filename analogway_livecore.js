@@ -257,7 +257,10 @@ export default class LiveCore extends InstanceBase {
 		// Force one extra reconnect shortly after startup regardless, so a second, likely-clean
 		// cascade run fills in whatever the first one missed.
 		this.startupSafetyReconnect = setTimeout(() => {
-			self.log('info', 'Forcing a one-time safety reconnect after startup to make sure the full device state was captured')
+			self.log(
+				'info',
+				'Forcing a one-time safety reconnect after startup to make sure the full device state was captured',
+			)
 			self.init_tcp()
 		}, 15000)
 	}
@@ -286,7 +289,9 @@ export default class LiveCore extends InstanceBase {
 			if (match == null) {
 				self.log(
 					'error',
-					'Connected to ' + self.label + ', but this is not the master of stacked configuation! Closing connection now.'
+					'Connected to ' +
+						self.label +
+						', but this is not the master of stacked configuation! Closing connection now.',
 				)
 				self.socket.destroy()
 				return
@@ -303,7 +308,7 @@ export default class LiveCore extends InstanceBase {
 					self.label +
 						' connections limit has been reached! Max 5 controllers possible, but it is ' +
 						connectedDevices +
-						'! Closing connection now.'
+						'! Closing connection now.',
 				)
 				self.socket.destroy() // TODO: there should be a possibility for the user to reconnect
 			}
@@ -945,11 +950,17 @@ export default class LiveCore extends InstanceBase {
 		}
 		this.screenKnownToExist.forEach((known, s) => {
 			if (!known) return
-			descriptions.push({ number: 41 + s, description: `Screen ${s + 1} Program` + (this.screenNames[s] ? ` - ${this.screenNames[s]}` : '') })
+			descriptions.push({
+				number: 41 + s,
+				description: `Screen ${s + 1} Program` + (this.screenNames[s] ? ` - ${this.screenNames[s]}` : ''),
+			})
 		})
 		this.screenKnownToExist.forEach((known, s) => {
 			if (!known) return
-			descriptions.push({ number: 49 + s, description: `Screen ${s + 1} Preview` + (this.screenNames[s] ? ` - ${this.screenNames[s]}` : '') })
+			descriptions.push({
+				number: 49 + s,
+				description: `Screen ${s + 1} Preview` + (this.screenNames[s] ? ` - ${this.screenNames[s]}` : ''),
+			})
 		})
 		return descriptions
 	}
@@ -1195,8 +1206,11 @@ export default class LiveCore extends InstanceBase {
 						choices: self.presetMemoryValid
 							.map((valid, m) =>
 								valid
-									? { id: String(m + 1), label: `${m + 1}` + (self.presetMemoryNames[m] ? ` - ${self.presetMemoryNames[m]}` : '') }
-									: undefined
+									? {
+											id: String(m + 1),
+											label: `${m + 1}` + (self.presetMemoryNames[m] ? ` - ${self.presetMemoryNames[m]}` : ''),
+										}
+									: undefined,
 							)
 							.filter((choice) => choice !== undefined),
 					},
@@ -1265,8 +1279,11 @@ export default class LiveCore extends InstanceBase {
 						choices: self.masterMemoryValid
 							.map((valid, m) =>
 								valid
-									? { id: String(m + 1), label: `${m + 1}` + (self.masterMemoryNames[m] ? ` - ${self.masterMemoryNames[m]}` : '') }
-									: undefined
+									? {
+											id: String(m + 1),
+											label: `${m + 1}` + (self.masterMemoryNames[m] ? ` - ${self.masterMemoryNames[m]}` : ''),
+										}
+									: undefined,
 							)
 							.filter((choice) => choice !== undefined),
 					},
@@ -1630,7 +1647,7 @@ export default class LiveCore extends InstanceBase {
 										{ id: '3', label: 'Toggle selection' },
 									],
 								}
-							: undefined
+							: undefined,
 					)
 					.filter((option) => option !== undefined),
 				callback: (action) => {
@@ -1765,7 +1782,9 @@ export default class LiveCore extends InstanceBase {
 				],
 				callback: (action) => {
 					//                        set mode
-					const lines = self.parseScreenNumbers(action.options.destscreen).map((s) => `${s - 1},${action.options.mode}SCico`)
+					const lines = self
+						.parseScreenNumbers(action.options.destscreen)
+						.map((s) => `${s - 1},${action.options.mode}SCico`)
 					if (lines.length > 0) self.sendcmd(lines.join('\n'))
 				},
 			},
