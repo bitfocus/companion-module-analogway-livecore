@@ -1,10 +1,12 @@
 {
 	"name": "analogway-livecore",
-	"version": "2.0.1",
+	"version": "3.0.0",
 	"type": "module",
 	"main": "analogway_livecore.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"format": "prettier -w .",
+		"package": "companion-module-build"
 	},
 	"author": "Dorian Meid <meid@backstage.org>",
 	"license": "MIT",
@@ -12,10 +14,17 @@
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-analogway-livecore.git"
 	},
+	"engines": {
+		"node": "^26",
+		"yarn": "^4"
+	},
 	"dependencies": {
-		"@companion-module/base": "~1.15.0"
+		"@companion-module/base": "^2.2.2"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.9.0"
-	}
+		"@companion-module/tools": "^3.2.1",
+		"prettier": "^3.10.1"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"packageManager": "yarn@4.18.1"
 }
