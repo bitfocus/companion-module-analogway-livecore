@@ -243,16 +243,19 @@ export const getFeedbacks = (self) => {
 			},
 		],
 		callback: (feedback) => {
+			// Same parsing as the "Load Memory" action: the number counts, an "SM" prefix is tolerated.
+			const memory = self.parseMemoryNumber(feedback.options.memory)
+			if (memory === undefined) return false
 			const screenMatches = (screen) => {
 				if (
 					(feedback.options.preset === 'pgm' || feedback.options.preset === 'any') &&
-					self.memoriesPGM[screen] === feedback.options.memory - 1
+					self.memoriesPGM[screen] === memory - 1
 				) {
 					return true
 				}
 				if (
 					(feedback.options.preset === 'pvw' || feedback.options.preset === 'any') &&
-					self.memoriesPVW[screen] === feedback.options.memory - 1
+					self.memoriesPVW[screen] === memory - 1
 				) {
 					return true
 				}

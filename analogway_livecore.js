@@ -80,7 +80,9 @@ export default class LiveCore extends InstanceBase {
 		this.memoriesPGM = Array.from({ length: 8 }, () => 255)
 		this.memoriesPVW = Array.from({ length: 8 }, () => 255)
 		this.screenNameChars = Array.from({ length: 8 }, () => [])
-		this.screenNames = Array.from({ length: 8 }, () => '')
+		// undefined (not '') until the first name reply, so that reply always sets the S{n}.name variable -
+		// even for a screen without a name, which would otherwise never differ from the initial value.
+		this.screenNames = Array.from({ length: 8 }, () => undefined)
 		// LiveCore supports up to 8 screens (across up to 2 stacked devices), but not all of them
 		// necessarily exist - SPise tells us which ones are actually enabled, see updateVariableDefinitions().
 		this.screenEnabled = Array.from({ length: 8 }, () => false)
@@ -136,7 +138,7 @@ export default class LiveCore extends InstanceBase {
 		// only the active plug has a meaningful name, others are blank or a generic placeholder.
 		this.inputActivePlug = Array.from({ length: 24 }, () => 0)
 		this.inputNameChars = Array.from({ length: 24 }, () => [])
-		this.inputNames = Array.from({ length: 24 }, () => '')
+		this.inputNames = Array.from({ length: 24 }, () => undefined) // see screenNames
 		// Which of the 6 plug types are actually available on each input (INpav), used for the
 		// "Available Input Plugs" info text on the "Switch input plug" action.
 		this.inputPlugAvailable = Array.from({ length: 24 }, () => Array.from({ length: 6 }, () => false))
@@ -155,7 +157,7 @@ export default class LiveCore extends InstanceBase {
 		this.outputActive = Array.from({ length: 8 }, () => false)
 		this.outputHdcp = Array.from({ length: 8 }, () => false)
 		this.outputNameChars = Array.from({ length: 8 }, () => [])
-		this.outputNames = Array.from({ length: 8 }, () => '')
+		this.outputNames = Array.from({ length: 8 }, () => undefined) // see screenNames
 
 		this.updateVariableDefinitions()
 		this.updateStatus(InstanceStatus.Connecting)
@@ -513,6 +515,11 @@ export default class LiveCore extends InstanceBase {
 		} else if (line.match(/TPver\d+,\d+/)) {
 			let commandSetVersion = parseInt(line.match(/TPver\d+,(\d+)/)[1])
 			self.log('info', 'Command set version of ' + self.label + ' is ' + commandSetVersion)
+			// Only once per connection: this port also carries replies to other clients' queries (that's
+			// how WebRCS traffic could be sniffed here), so another controller connecting - or our own
+			// DEV/TPver queries being answered twice - must not start another ~800-command cascade.
+			if (self.stateCascadeSent) return
+			self.stateCascadeSent = true
 
 			// The full state cascade below is a lot of commands (~800) - sent as a paced batch via
 			// sendCommandBatch() rather than individually, to avoid overwhelming the socket/device.
@@ -889,7 +896,8 @@ export default class LiveCore extends InstanceBase {
 	//e.g. "SM4" and "4" both resolve to memory 4. Returns undefined if no number is found.
 	parseMemoryNumber(text) {
 		const match = String(text ?? '').match(/\d+/)
-		return match ? Number(match[0]) : undefined
+		const number = match ? Number(match[0]) : undefined
+		return number >= 1 ? number : undefined // memory 0 would become an invalid index -1
 	}
 
 	//Dropdown choices for the inputs that currently exist (INava): 1-12 without a linked slave
@@ -1009,6 +1017,8 @@ export default class LiveCore extends InstanceBase {
 			self.socket.on('connect', () => {
 				self.log('debug', 'Connected')
 				self.lastDataReceivedAt = Date.now()
+				// Allow exactly one full state cascade per connection, see the TPver handling.
+				self.stateCascadeSent = false
 				// The device normally sends an unsolicited greeting (ITcct/TPcon) to a newly
 				// connected client, which is what used to trigger the '?' query below - but on a
 				// quick reconnect it doesn't always send one (seemingly the device doesn't always
@@ -1587,8 +1597,10 @@ export default class LiveCore extends InstanceBase {
 				callback: (action) => {
 					let cmd = ''
 					if (action.options.fullscreen == 1) {
+						const source = parseInt(action.options.input)
+						if (!(source >= 1 && source <= 56)) return
 						// select input
-						cmd = '' + action.options.device + ',' + (parseInt(action.options.input) - 1) + 'MLfes\n'
+						cmd = '' + action.options.device + ',' + (source - 1) + 'MLfes\n'
 						// activate fullscreen
 						cmd += '' + action.options.device + ',1MLfen\n'
 					} else {
@@ -1601,7 +1613,7 @@ export default class LiveCore extends InstanceBase {
 			},
 			selectscreens: {
 				name: 'Select screens for global take',
-				tooltip:
+				description:
 					'Select the screens which schould transition with the global take command. The selection stays active until changed again.',
 				options: self.screenEnabled
 					.map((enabled, s) =>
@@ -1643,7 +1655,7 @@ export default class LiveCore extends InstanceBase {
 			},
 			selectscreen: {
 				name: 'Select one or more screens for global take',
-				tooltip:
+				description:
 					'Add, remove or toggle one or more screens in the selection which schould transition with the global take command. The selection stays active until changed again.',
 				options: [
 					{
@@ -1759,7 +1771,7 @@ export default class LiveCore extends InstanceBase {
 			},
 			switchplug: {
 				name: 'Switch input plug',
-				tooltip:
+				description:
 					'Note that not all inputs may be available at your system and not all plugs are available at any input.',
 				options: [
 					{
@@ -1802,11 +1814,10 @@ export default class LiveCore extends InstanceBase {
 					})),
 				],
 				callback: (action) => {
-					// set input
-					let cmd = '' + (parseInt(action.options.input) - 1) + ','
-					// set plug
-					cmd += action.options.plug + 'INplg'
-					self.sendcmd(cmd)
+					const input = parseInt(action.options.input) - 1
+					const plug = parseInt(action.options.plug)
+					if (!(input >= 0 && input < 24) || !(plug >= 0 && plug <= 5)) return
+					self.sendcmd(input + ',' + plug + 'INplg')
 				},
 			},
 			sendcustomcommand: {

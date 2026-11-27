@@ -6,7 +6,7 @@ See HELP.md and LICENSE
 ## Version History
 
 ### 3.0.0 (2026-09-10)
-* major: require Companion v4.3+ (upgraded to @companion-module/base v2)
+* major: require Companion v5.1+ (upgraded to @companion-module/base v2.2, Node 26 runtime)
 * fix: PGM/PVW memory feedback finally works after all those years
 * fix: config save no longer crashes the connection
 * fix: several old bugs where ass-kicked

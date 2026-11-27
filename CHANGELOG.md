@@ -2,7 +2,7 @@
 
 ## 3.0.0 — Maintenance, Companion v2 update, feedbacks and presets (September 2026)
 
-A big maintenance and feature pass on the module, covering everything since the last release published on the original bitfocus repository (2.0.0). Existing shows keep working — same actions, same buttons — but the module now tracks the switcher's actual state correctly, offers a lot more feedbacks and variables, stops asking you to type numbers you'd otherwise have to look up, and ships a full set of ready-to-use presets.
+A big maintenance and feature pass on the module, covering everything since the last release published on the original bitfocus repository (2.0.1, which itself only updated dependencies and the Node runtime over 2.0.0). Existing shows keep working — same actions, same buttons — but the module now tracks the switcher's actual state correctly, offers a lot more feedbacks and variables, stops asking you to type numbers you'd otherwise have to look up, and ships a full set of ready-to-use presets.
 
 ### Fixed
 
@@ -23,6 +23,11 @@ These were not edge cases — they affected the core feedback loop of running a 
 - A single malformed line from the switcher could take the whole module down; it's now logged and skipped instead.
 - The state query on connect ran twice per connection (once triggered by our own request, once by the switcher's greeting) — it now runs once.
 - Disabling or reloading the module while it was still busy talking to the switcher could leave a stray connection open, occupying one of the switcher's five controller slots.
+- Another controller connecting to the switcher (e.g. WebRCS or a second Companion) could make the module re-read the complete device state again; it now does that exactly once per connection.
+- Screen, input and output names that are empty on the device left their variables (`S{n}.name`, `Input{n}.label`, `Out{n}.name`) without any value instead of an empty one.
+- "Switch input plug" and "Fullscreen Monitoring" no longer send a broken command when an expression yields something that isn't a valid input/plug/source; memory number 0 is ignored instead of being sent as an invalid index.
+- The "Memory active" feedback now accepts "SM4" as well as "4", like the Load Memory action.
+- The explanatory texts of "Select screens for global take", "Select one or more screens for global take" and "Switch input plug" were never shown in Companion.
 
 ### Added
 
@@ -63,7 +68,7 @@ These were not edge cases — they affected the core feedback loop of running a 
 ### Changed
 
 - **Connects on port 10500 instead of 10600**, and the port is no longer user-configurable. Port 10500 is the richer channel the operator panel itself uses; it's what makes live T-bar tracking and the named dropdowns possible. Existing connections pick this up automatically on update.
-- **Upgraded `@companion-module/base` from `~1.4.1` to `^2.1.3`** (and `@companion-module/tools` to `^3.1.0`). Requires **Companion 4.3 or newer** — installations on an older Companion release should stay on the previous module version. This also puts the module's fields on Companion's current expression system going forward.
+- **Upgraded `@companion-module/base` from `~1.15.0` to `^2.2.2`** (and `@companion-module/tools` to `^3.2.1`). Requires **Companion 5.1 or newer** — installations on an older Companion release should stay on the previous module version. This also puts the module's fields on Companion's current expression system going forward.
 - **Device variables renamed to a consistent `Device.*` capitalisation** (was `device.*`), matching every other variable in the module. Any button text already referencing e.g. `device.firmware` will need updating to `Device.firmware`.
 
 ### Internal
@@ -71,6 +76,6 @@ These were not edge cases — they affected the core feedback loop of running a 
 - Migrated the module entrypoint from `runEntrypoint()` to a default export + named `UpgradeScripts` export (required by base v2).
 - `setVariableDefinitions` now uses the v2 object-keyed format instead of an array.
 - Removed `context.parseVariablesInString()` in favour of Companion resolving `useVariables` fields before the action callback runs.
-- `companion/manifest.json`: `runtime.type` updated to `node22`; added the now-required top-level `"type": "connection"` field.
+- `companion/manifest.json`: `runtime.type` set to `node26`; added the now-required top-level `"type": "connection"` field.
 - Upgraded module tooling to Yarn 4.17.0 with a pinned `packageManager`, matching bitfocus's current module template.
 - Added a GitHub Actions CI workflow (lint/build) and a husky pre-commit hook.
